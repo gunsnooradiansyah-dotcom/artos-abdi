@@ -1,6 +1,7 @@
 {
   "name": "Artos Abdi",
   "short_name": "Artos Abdi",
+  "description": "Manajemen Keuangan Pribadi Cerdas & Aman",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f172a",
@@ -9,7 +10,8 @@
     {
       "src": "/icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
