@@ -2512,8 +2512,8 @@
                     <td class="py-3 px-4 text-right font-bold ${amtColor}">
                         ${sign}${formatRupiah(tx.amount)}
                     </td>
-                    <td class="py-3 px-4 text-center">
-                        ${tx.receiptUrl ? `<a href="${tx.receiptUrl}" target="_blank" class="text-emerald-600 font-semibold text-[11px] underline">Lihat Struk</a>` : '<span class="text-slate-300">-</span>'}
+                   <td class="py-3 px-4 text-center">
+                        ${(tx.receiptUrl && (tx.receiptUrl.includes('supabase.co') || tx.receiptUrl.startsWith('data:image'))) ? `<a href="${tx.receiptUrl}" target="_blank" class="text-emerald-600 font-semibold text-[11px] underline">Lihat Struk</a>` : '<span class="text-slate-300">-</span>'}
                     </td>
                     <td class="py-3 px-4 text-center">
                         <div class="flex items-center justify-center space-x-1">
@@ -3197,7 +3197,7 @@
             const subcategory = document.getElementById('txSubcategorySelect').value;
             const date = document.getElementById('txDate').value;
             const note = document.getElementById('txNote').value;
-            const receiptImg = document.getElementById('previewImgElement').src || '';
+            const receiptImg = document.getElementById('previewImgElement').getAttribute('src') || '';
 
             if (!amount || amount <= 0) {
                 showToast('Nominal transaksi harus lebih dari 0.', 'error');
