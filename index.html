@@ -120,19 +120,24 @@
         </div>
     </div>
 
-    <!-- CUSTOM ARTOS CONFIRMATION MODAL (REPLACES BROWSER CONFIRM) -->
+    <!-- CUSTOM ARTOS CONFIRMATION MODAL (REPLACES BROWSER CONFIRM & PROMPT) -->
     <div id="artosConfirmModal" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 z-[99999] hidden transition-opacity duration-200">
         <div class="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 transform transition-all duration-300 scale-95 opacity-0 flex flex-col items-center text-center space-y-4" id="artosConfirmBox">
             <div id="confirmIconBox" class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shadow-inner">
                 <i data-lucide="trash-2" class="w-7 h-7"></i>
             </div>
-            <div class="space-y-1">
+            <div class="space-y-1.5 w-full">
                 <h3 id="confirmModalTitle" class="text-base font-bold text-slate-800">Konfirmasi Hapus</h3>
                 <p id="confirmModalMessage" class="text-xs text-slate-500 leading-relaxed">Apakah Anda yakin ingin melanjutkan tindakan ini?</p>
             </div>
+            <!-- Input Verifikasi Kustom (Pengganti prompt() Chrome) -->
+            <div id="confirmPromptWrapper" class="w-full hidden space-y-1.5 pt-1">
+                <label id="confirmPromptLabel" class="block text-[11px] font-semibold text-slate-600"></label>
+                <input type="text" id="confirmPromptInput" autocomplete="off" class="w-full text-center text-sm font-mono font-bold tracking-widest uppercase border border-slate-300 rounded-xl px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-rose-500 bg-slate-50 text-slate-800" placeholder="Ketik di sini...">
+            </div>
             <div class="flex items-center space-x-3 w-full pt-2">
                 <button type="button" id="btnConfirmCancel" class="flex-1 py-2.5 px-4 rounded-xl border border-slate-200 text-slate-600 font-semibold text-xs hover:bg-slate-50 transition active:scale-95">Batal</button>
-                <button type="button" id="btnConfirmAccept" class="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md shadow-rose-600/30 transition active:scale-95">Ya, Hapus</button>
+                <button type="button" id="btnConfirmAccept" class="flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md shadow-rose-600/30 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed">Ya, Hapus</button>
             </div>
         </div>
     </div>
@@ -3298,16 +3303,12 @@
             const totalTx = appState.transactions.length;
             const confirmed = await showCustomConfirm({
                 title: 'Reset Semua Riwayat Transaksi',
-                message: `PERINGATAN: Anda akan menghapus SEMUA (${totalTx}) riwayat transaksi dari database. Data yang dihapus tidak dapat dikembalikan dan saldo dompet akan disesuaikan kembali. Lanjutkan?`,
-                confirmText: 'Ya, Hapus Semua'
+                message: `Anda akan menghapus SEMUA (${totalTx}) riwayat transaksi dari database. Data yang dihapus tidak dapat dikembalikan dan saldo dompet akan disesuaikan kembali.`,
+                confirmText: 'Hapus Semua',
+                requireKeyword: 'HAPUS',
+                promptLabel: 'Ketik "HAPUS" untuk mengonfirmasi:'
             });
             if (!confirmed) return;
-
-            const confirmText = prompt('Ketik "HAPUS" (huruf besar semua) untuk mengonfirmasi penghapusan seluruh riwayat:');
-            if (confirmText !== 'HAPUS') {
-                showToast('Penghapusan seluruh riwayat dibatalkan.', 'error');
-                return;
-            }
 
             showLoading('Mereset Riwayat Transaksi...', 'Menghapus seluruh catatan transaksi di Supabase');
             artosCall('deleteAllArtosTransactions', [])
@@ -3907,7 +3908,7 @@
             openModal('settingsModal');
         }
 
-        function showCustomConfirm({ title = 'Konfirmasi', message = 'Apakah Anda yakin?', confirmText = 'Ya, Lanjutkan', cancelText = 'Batal', isDanger = true }) {
+        function showCustomConfirm({ title = 'Konfirmasi', message = 'Apakah Anda yakin?', confirmText = 'Ya, Lanjutkan', cancelText = 'Batal', isDanger = true, requireKeyword = '', promptLabel = '' }) {
             return new Promise((resolve) => {
                 const modal = document.getElementById('artosConfirmModal');
                 const box = document.getElementById('artosConfirmBox');
@@ -3916,6 +3917,9 @@
                 const btnCancel = document.getElementById('btnConfirmCancel');
                 const btnAccept = document.getElementById('btnConfirmAccept');
                 const iconBox = document.getElementById('confirmIconBox');
+                const promptWrapper = document.getElementById('confirmPromptWrapper');
+                const promptLabelEl = document.getElementById('confirmPromptLabel');
+                const promptInput = document.getElementById('confirmPromptInput');
 
                 if (!modal || !box) {
                     resolve(true);
@@ -3930,24 +3934,42 @@
                 if (isDanger) {
                     iconBox.className = 'w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center shadow-inner';
                     iconBox.innerHTML = '<i data-lucide="trash-2" class="w-7 h-7"></i>';
-                    btnAccept.className = 'flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md shadow-rose-600/30 transition active:scale-95';
+                    btnAccept.className = 'flex-1 py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-md shadow-rose-600/30 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed';
                 } else {
                     iconBox.className = 'w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shadow-inner';
                     iconBox.innerHTML = '<i data-lucide="help-circle" class="w-7 h-7"></i>';
-                    btnAccept.className = 'flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md shadow-emerald-600/30 transition active:scale-95';
+                    btnAccept.className = 'flex-1 py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-md shadow-emerald-600/30 transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed';
                 }
+
+                if (requireKeyword && promptWrapper && promptInput) {
+                    promptWrapper.classList.remove('hidden');
+                    promptLabelEl.textContent = promptLabel || `Ketik "${requireKeyword}" untuk melanjutkan:`;
+                    promptInput.value = '';
+                    promptInput.placeholder = requireKeyword;
+                    btnAccept.disabled = true;
+                    promptInput.oninput = () => {
+                        btnAccept.disabled = promptInput.value.trim() !== requireKeyword;
+                    };
+                } else if (promptWrapper) {
+                    promptWrapper.classList.add('hidden');
+                    btnAccept.disabled = false;
+                    if (promptInput) promptInput.oninput = null;
+                }
+
                 if (window.lucide) lucide.createIcons();
 
                 modal.classList.remove('hidden');
                 setTimeout(() => {
                     box.classList.remove('scale-95', 'opacity-0');
                     box.classList.add('scale-100', 'opacity-100');
+                    if (requireKeyword && promptInput) promptInput.focus();
                 }, 10);
 
                 let resolved = false;
                 function cleanup(result) {
                     if (resolved) return;
                     resolved = true;
+                    btnAccept.disabled = false;
                     box.classList.remove('scale-100', 'opacity-100');
                     box.classList.add('scale-95', 'opacity-0');
                     setTimeout(() => {
@@ -3957,7 +3979,10 @@
                 }
 
                 btnCancel.onclick = () => cleanup(false);
-                btnAccept.onclick = () => cleanup(true);
+                btnAccept.onclick = () => {
+                    if (requireKeyword && promptInput && promptInput.value.trim() !== requireKeyword) return;
+                    cleanup(true);
+                };
             });
         }
 
