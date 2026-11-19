@@ -567,7 +567,7 @@
                     <section id="view-goals" class="hidden space-y-6">
                         <div class="flex justify-between items-center bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
                             <h3 class="font-bold text-slate-800 text-base">Tabungan & Target Impian</h3>
-                            <button type="button" onclick="openModal('addGoalModal')" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center">
+                           <button type="button" onclick="openAddGoalModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 rounded-xl flex items-center">
                                 <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Tambah Goal Baru
                             </button>
                         </div>
@@ -581,8 +581,8 @@
                                 <h3 class="font-bold text-slate-800 text-base">Catatan Utang, Piutang & KPR</h3>
                                 <p class="text-xs text-slate-500">Mendukung pinjaman jangka panjang/KPR dengan cicilan bulanan terjadwal</p>
                             </div>
-                            <button type="button" onclick="openModal('addDebtModal')" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center shadow-sm transition active:scale-95">
-                                <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i> Catat Utang/Piutang
+                            <button type="button" onclick="openAddDebtModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center shadow-sm transition active:scale-95">
+                                    <i data-lucide="plus" class="w-4 h-4 mr-1.5"></i> Catat Utang/Piutang
                             </button>
                         </div>
 
@@ -1123,11 +1123,12 @@
         </div>
     </div>
 
-    <!-- MODAL GOALS -->
+    <!-- MODAL GOALS (TAMBAH & EDIT) -->
     <div id="addGoalModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-5 space-y-4">
-            <h3 class="font-bold text-slate-800 text-sm">Tambah Target Tabungan</h3>
+            <h3 id="goalModalTitle" class="font-bold text-slate-800 text-sm">Tambah Target Tabungan</h3>
             <form onsubmit="handleCreateGoal(event)" class="space-y-3">
+                <input type="hidden" id="editGoalId">
                 <div>
                     <label class="text-[11px] font-semibold text-slate-600">Nama Impian / Goal</label>
                     <input type="text" id="goalNameInput" required placeholder="misal: Dana Darurat" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
@@ -1135,6 +1136,10 @@
                 <div>
                     <label class="text-[11px] font-semibold text-slate-600">Target Nominal (Rp)</label>
                     <input type="text" inputmode="numeric" id="goalTargetInput" required placeholder="10.000.000" oninput="formatCurrencyInput(this)" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-600">Saldo Terkumpul Saat Ini (Rp)</label>
+                    <input type="text" inputmode="numeric" id="goalCurrentInput" placeholder="0" oninput="formatCurrencyInput(this)" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
                 </div>
                 <div>
                     <label class="text-[11px] font-semibold text-slate-600">Tenggat Waktu</label>
@@ -1167,10 +1172,13 @@
     <!-- MODAL CATAT UTANG, PIUTANG & KPR (DENGAN CICILAN BERKALA) -->
     <div id="addDebtModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
-            <h3 class="font-bold text-slate-800 text-sm flex items-center">
+            <h3 id="debtModalTitle" class="font-bold text-slate-800 text-sm flex items-center">
                 <i data-lucide="receipt-text" class="w-4 h-4 mr-1.5 text-emerald-600"></i> Catat Utang, Piutang & KPR
             </h3>
             <form onsubmit="handleCreateDebt(event)" class="space-y-3">
+                <input type="hidden" id="editDebtId">
+                <input type="hidden" id="editDebtPaidInstallments" value="0">
+                <input type="hidden" id="editDebtStatus" value="BELUM_LUNAS">
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-[11px] font-semibold text-slate-600">Jenis</label>
@@ -2727,14 +2735,16 @@
                 const card = document.createElement('div');
                 card.className = "bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm space-y-4 relative overflow-hidden";
                 card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="font-bold text-slate-800 text-sm">${g.name}</h4>
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="min-w-0 flex-1">
+                            <h4 class="font-bold text-slate-800 text-sm truncate">${g.name}</h4>
                             <p class="text-[11px] text-slate-400">Tenggat: <span class="font-mono text-slate-600">${g.deadline || '-'}</span></p>
                         </div>
-                        <div class="flex items-center space-x-1">
-                            <span class="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">${pct}%</span>
-                            <button type="button" onclick="deleteGoal('${g.id}')" class="text-slate-400 hover:text-red-500 p-1 transition" title="Hapus Goal">
+                        <div class="flex items-center space-x-1 shrink-0">
+                            <button type="button" onclick="openEditGoalModal('${g.id}')" class="text-slate-400 hover:text-emerald-600 p-1.5 rounded-lg hover:bg-emerald-50 transition" title="Edit Goal">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" onclick="deleteGoal('${g.id}')" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Hapus Goal">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -2759,6 +2769,27 @@
             lucide.createIcons();
         }
 
+        function openAddGoalModal() {
+            document.getElementById('editGoalId').value = '';
+            document.getElementById('goalModalTitle').textContent = 'Tambah Target Tabungan';
+            document.getElementById('goalNameInput').value = '';
+            document.getElementById('goalTargetInput').value = '';
+            document.getElementById('goalCurrentInput').value = '0';
+            document.getElementById('goalDeadlineInput').value = '';
+            openModal('addGoalModal');
+        }
+
+        function openEditGoalModal(id) {
+            const g = appState.goals.find(item => item.id === id);
+            if (!g) return;
+            document.getElementById('editGoalId').value = g.id;
+            document.getElementById('goalModalTitle').textContent = 'Edit Target Tabungan';
+            document.getElementById('goalNameInput').value = g.name || '';
+            document.getElementById('goalTargetInput').value = Number(g.target || 0).toLocaleString('id-ID');
+            document.getElementById('goalCurrentInput').value = Number(g.current || 0).toLocaleString('id-ID');
+            document.getElementById('goalDeadlineInput').value = g.deadline || '';
+            openModal('addGoalModal');
+        }
         function renderDebtsTable() {
             const tbody = document.getElementById('debtsTableBody');
             const mobileContainer = document.getElementById('debtsMobileCards');
@@ -2806,9 +2837,14 @@
                                 <h4 class="font-bold text-slate-800 text-sm leading-snug">${d.person}</h4>
                                 ${d.notes ? `<p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">${d.notes}</p>` : ''}
                             </div>
-                            <button type="button" onclick="deleteDebt('${d.id}')" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition shrink-0" title="Hapus Catatan">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                            <div class="flex items-center space-x-1 shrink-0">
+                                <button type="button" onclick="openEditDebtModal('${d.id}')" class="text-slate-400 hover:text-emerald-600 p-1.5 rounded-lg hover:bg-emerald-50 transition" title="Edit Catatan">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button type="button" onclick="deleteDebt('${d.id}')" class="text-slate-400 hover:text-rose-500 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Hapus Catatan">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
                         </div>
 
                         <div class="bg-slate-50 rounded-xl p-3 border border-slate-100 space-y-2">
@@ -2899,6 +2935,9 @@
                                         ${isLunas ? 'Lunas' : 'Tandai Lunas'}
                                     </button>
                                 `}
+                                <button type="button" onclick="openEditDebtModal('${d.id}')" class="text-slate-400 hover:text-emerald-600 p-1 rounded transition" title="Edit Catatan">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
                                 <button type="button" onclick="deleteDebt('${d.id}')" class="text-slate-400 hover:text-red-500 p-1" title="Hapus Catatan">
                                     <i data-lucide="trash-2" class="w-4 h-4"></i>
                                 </button>
@@ -3561,12 +3600,51 @@
             }
         }
 
-        /* ====================================================================
+      /* ====================================================================
            6. UTANG, PIUTANG, KPR & PEMBAYARAN CICILAN BULANAN
            ==================================================================== */
 
+        function openAddDebtModal() {
+            document.getElementById('editDebtId').value = '';
+            document.getElementById('editDebtPaidInstallments').value = '0';
+            document.getElementById('editDebtStatus').value = 'BELUM_LUNAS';
+            document.getElementById('debtModalTitle').innerHTML = `<i data-lucide="receipt-text" class="w-4 h-4 mr-1.5 text-emerald-600"></i> Catat Utang, Piutang & KPR`;
+            document.getElementById('debtTypeInput').value = 'UTANG';
+            document.getElementById('debtPersonInput').value = '';
+            document.getElementById('debtAmountInput').value = '';
+            document.getElementById('debtDueDateInput').value = '';
+            document.getElementById('debtTenorMonthsInput').value = '';
+            document.getElementById('debtMonthlyInstInput').value = '';
+            document.getElementById('debtPaymentDayInput').value = '';
+            document.getElementById('debtNotesInput').value = '';
+            openModal('addDebtModal');
+            lucide.createIcons();
+        }
+
+        function openEditDebtModal(id) {
+            const d = appState.debts.find(item => item.id === id);
+            if (!d) return;
+            document.getElementById('editDebtId').value = d.id;
+            document.getElementById('editDebtPaidInstallments').value = d.paidInstallments || 0;
+            document.getElementById('editDebtStatus').value = d.status || 'BELUM_LUNAS';
+            document.getElementById('debtModalTitle').innerHTML = `<i data-lucide="edit-3" class="w-4 h-4 mr-1.5 text-emerald-600"></i> Edit Catatan Utang, Piutang & KPR`;
+            document.getElementById('debtTypeInput').value = d.type || 'UTANG';
+            document.getElementById('debtPersonInput').value = d.person || '';
+            document.getElementById('debtAmountInput').value = Number(d.amount || 0).toLocaleString('id-ID');
+            document.getElementById('debtDueDateInput').value = d.dueDate || '';
+            document.getElementById('debtTenorMonthsInput').value = d.tenorMonths || '';
+            document.getElementById('debtMonthlyInstInput').value = d.monthlyInstallment ? Number(d.monthlyInstallment).toLocaleString('id-ID') : '';
+            document.getElementById('debtPaymentDayInput').value = d.paymentDay || '';
+            document.getElementById('debtNotesInput').value = d.notes || '';
+            openModal('addDebtModal');
+            lucide.createIcons();
+        }
+
         function handleCreateDebt(e) {
             e.preventDefault();
+            const editId = document.getElementById('editDebtId').value;
+            const paidInstallments = Number(document.getElementById('editDebtPaidInstallments').value) || 0;
+            const currentStatus = document.getElementById('editDebtStatus').value || 'BELUM_LUNAS';
             const type = document.getElementById('debtTypeInput').value;
             const person = document.getElementById('debtPersonInput').value;
             const amount = cleanNumberInput(document.getElementById('debtAmountInput').value);
@@ -3579,15 +3657,15 @@
             setButtonLoading('btnSubmitDebt', true);
 
             artosCall('saveArtosDebt', [{
-                id: '',
+                id: editId || '',
                 type: type,
                 person: person,
                 amount: amount,
                 dueDate: dueDate,
-                status: 'BELUM_LUNAS',
+                status: editId ? currentStatus : 'BELUM_LUNAS',
                 tenorMonths: tenorMonths,
                 monthlyInstallment: monthlyInst,
-                paidInstallments: 0,
+                paidInstallments: editId ? paidInstallments : 0,
                 paymentDay: paymentDay,
                 notes: notes
             }])
@@ -3595,7 +3673,7 @@
             .then(() => {
                 setButtonLoading('btnSubmitDebt', false, 'Simpan Utang/Piutang');
                 closeModal('addDebtModal');
-                showToast('Catatan utang/piutang berhasil disimpan!');
+                showToast(editId ? 'Catatan utang/piutang berhasil diperbarui!' : 'Catatan utang/piutang berhasil disimpan!');
             })
             .catch(err => {
                 setButtonLoading('btnSubmitDebt', false, 'Simpan Utang/Piutang');
@@ -3694,26 +3772,28 @@
            7. GOALS & MASTER CRUD
            ==================================================================== */
 
-        function handleCreateGoal(e) {
+     function handleCreateGoal(e) {
             e.preventDefault();
+            const editId = document.getElementById('editGoalId').value;
             const name = document.getElementById('goalNameInput').value;
             const target = cleanNumberInput(document.getElementById('goalTargetInput').value);
+            const current = cleanNumberInput(document.getElementById('goalCurrentInput').value);
             const deadline = document.getElementById('goalDeadlineInput').value;
 
             setButtonLoading('btnSubmitGoal', true);
             artosCall('saveArtosGoal', [{
-                id: '',
+                id: editId || '',
                 name: name,
                 target_amount: target,
-                current_amount: 0,
+                current_amount: current,
                 deadline: deadline,
-                status: 'ACTIVE'
+                status: current >= target && target > 0 ? 'COMPLETED' : 'ACTIVE'
             }])
             .then(() => artosLoadData(false))
             .then(() => {
                 setButtonLoading('btnSubmitGoal', false, 'Simpan Goal');
                 closeModal('addGoalModal');
-                showToast('Target tabungan berhasil ditambahkan!');
+                showToast(editId ? 'Target tabungan berhasil diperbarui!' : 'Target tabungan berhasil ditambahkan!');
             })
             .catch(err => {
                 setButtonLoading('btnSubmitGoal', false, 'Simpan Goal');
