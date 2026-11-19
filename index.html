@@ -3947,9 +3947,9 @@
                     promptInput.value = '';
                     promptInput.placeholder = requireKeyword;
                     btnAccept.disabled = true;
-                    promptInput.oninput = () => {
-                        btnAccept.disabled = promptInput.value.trim() !== requireKeyword;
-                    };
+                   promptInput.oninput = () => {
+    btnAccept.disabled = promptInput.value.trim().toUpperCase() !== requireKeyword.toUpperCase();
+};
                 } else if (promptWrapper) {
                     promptWrapper.classList.add('hidden');
                     btnAccept.disabled = false;
@@ -3980,9 +3980,9 @@
 
                 btnCancel.onclick = () => cleanup(false);
                 btnAccept.onclick = () => {
-                    if (requireKeyword && promptInput && promptInput.value.trim() !== requireKeyword) return;
-                    cleanup(true);
-                };
+    if (requireKeyword && promptInput && promptInput.value.trim().toUpperCase() !== requireKeyword.toUpperCase()) return;
+    cleanup(true);
+};
             });
         }
 
