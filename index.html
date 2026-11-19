@@ -338,7 +338,7 @@
                             <i data-lucide="wallet" class="w-5 h-5"></i>
                         </div>
                         <div>
-                            <h1 id="pageTitle" class="text-base sm:text-xl font-bold text-slate-800">Dashboard Keuangan</h1>
+                            <h1 id="pageTitle" class="text-sm sm:text-xl font-bold text-slate-800 leading-tight">Dashboard Keuangan</h1>
                             <p id="pageSubtitle" class="text-xs text-slate-500 hidden sm:block">Ringkasan arus kas dan performa keuangan pribadi Anda</p>
                         </div>
                     </div>
@@ -461,38 +461,41 @@
                         </div>
                     </section>
 
-                    <!-- SCREEN B: TRANSACTIONS -->
-                    <section id="view-transactions" class="hidden space-y-6">
+                    <!-- SCREEN B: TRANSACTIONS (RESPONSIF MOBILE & DESKTOP) -->
+                    <section id="view-transactions" class="hidden space-y-4 sm:space-y-6">
                         <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
                             <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                                <input type="text" id="txSearchInput" oninput="renderFullTransactionsTable()" placeholder="Cari transaksi..." class="text-xs border border-slate-200 rounded-xl px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <input type="text" id="txSearchInput" oninput="renderFullTransactionsTable()" placeholder="Cari transaksi..." class="text-xs border border-slate-200 rounded-xl px-3 py-2.5 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             </div>
                             <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-                                <button type="button" onclick="handleDeleteAllTransactions()" class="w-full sm:w-auto bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center transition">
+                                <button type="button" onclick="handleDeleteAllTransactions()" class="w-full sm:w-auto bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center transition active:scale-95">
                                     <i data-lucide="trash-2" class="w-4 h-4 mr-1.5"></i> Hapus Semua Riwayat
                                 </button>
-                                <button type="button" onclick="openAddTransactionModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center shadow-md">
+                                <button type="button" onclick="openAddTransactionModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center shadow-md transition active:scale-95">
                                     <i data-lucide="plus-circle" class="w-4 h-4 mr-1.5"></i> Catat Transaksi Baru
                                 </button>
                             </div>
                         </div>
-                        <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
-                            <div class="overflow-x-auto">
-                                <table class="w-full text-left text-xs">
-                                    <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
-                                        <tr>
-                                            <th class="py-3 px-4">Tanggal</th>
-                                            <th class="py-3 px-4">Tipe</th>
-                                            <th class="py-3 px-4">Kategori & Catatan</th>
-                                            <th class="py-3 px-4">Dompet</th>
-                                            <th class="py-3 px-4 text-right">Nominal</th>
-                                            <th class="py-3 px-4 text-center">Struk</th>
-                                            <th class="py-3 px-4 text-center">Aksi</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="fullTransactionsTable" class="divide-y divide-slate-100"></tbody>
-                                </table>
-                            </div>
+
+                        <!-- TAMPILAN KARTU KHUSUS MOBILE HP (TIDAK TERPOTONG) -->
+                        <div id="transactionsMobileCards" class="md:hidden space-y-3"></div>
+
+                        <!-- TAMPILAN TABEL KHUSUS DESKTOP / TABLET -->
+                        <div class="hidden md:block bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
+                                    <tr>
+                                        <th class="py-3 px-4">Tanggal</th>
+                                        <th class="py-3 px-4">Tipe</th>
+                                        <th class="py-3 px-4">Kategori & Catatan</th>
+                                        <th class="py-3 px-4">Dompet</th>
+                                        <th class="py-3 px-4 text-right">Nominal</th>
+                                        <th class="py-3 px-4 text-center">Struk</th>
+                                        <th class="py-3 px-4 text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fullTransactionsTable" class="divide-y divide-slate-100"></tbody>
+                            </table>
                         </div>
                     </section>
 
@@ -2497,8 +2500,10 @@
 
         function renderFullTransactionsTable() {
             const tbody = document.getElementById('fullTransactionsTable');
+            const mobileContainer = document.getElementById('transactionsMobileCards');
             const search = (document.getElementById('txSearchInput')?.value || '').toLowerCase();
-            tbody.innerHTML = '';
+            if (tbody) tbody.innerHTML = '';
+            if (mobileContainer) mobileContainer.innerHTML = '';
 
             const filtered = appState.transactions.filter(t => 
                 (t.categoryName || '').toLowerCase().includes(search) || 
@@ -2508,50 +2513,101 @@
             );
 
             if (filtered.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada transaksi yang cocok.</td></tr>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada transaksi yang cocok.</td></tr>`;
+                if (mobileContainer) mobileContainer.innerHTML = `<div class="bg-white border border-slate-200/80 rounded-2xl p-6 text-center text-xs text-slate-400">Tidak ada transaksi yang cocok.</div>`;
                 return;
             }
 
             [...filtered].reverse().forEach(tx => {
-                const tr = document.createElement('tr');
                 const isInc = tx.type === 'INCOME';
                 const isTransfer = tx.type === 'TRANSFER';
                 const sign = isInc ? '+ ' : (isTransfer ? '⇄ ' : '- ');
                 const badgeColor = isInc ? 'bg-emerald-100 text-emerald-700' : (isTransfer ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700');
                 const badgeText = isInc ? 'MASUK' : (isTransfer ? 'TRANSFER' : 'KELUAR');
                 const amtColor = isInc ? 'text-emerald-600' : (isTransfer ? 'text-blue-600' : 'text-red-500');
+                const hasReceipt = tx.receiptUrl && (tx.receiptUrl.includes('supabase.co') || tx.receiptUrl.startsWith('data:image'));
 
-                tr.innerHTML = `
-                    <td class="py-3 px-4 font-mono text-slate-500">${tx.date}</td>
-                    <td class="py-3 px-4">
-                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">
-                            ${badgeText}
-                        </span>
-                    </td>
-                    <td class="py-3 px-4">
-                        <span class="font-semibold text-slate-800">${tx.categoryName || (isTransfer ? 'Transfer Antar Dompet' : '-')}</span>
-                        ${tx.subcategory ? `<span class="ml-1 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${tx.subcategory}</span>` : ''}
-                        <p class="text-[10px] text-slate-400">${tx.note || '-'}</p>
-                    </td>
-                    <td class="py-3 px-4 text-slate-600">${tx.walletName}${isTransfer ? ' → ' + (tx.walletNameTo || '') : ''}</td>
-                    <td class="py-3 px-4 text-right font-bold ${amtColor}">
-                        ${sign}${formatRupiah(tx.amount)}
-                    </td>
-                   <td class="py-3 px-4 text-center">
-                        ${(tx.receiptUrl && (tx.receiptUrl.includes('supabase.co') || tx.receiptUrl.startsWith('data:image'))) ? `<a href="${tx.receiptUrl}" target="_blank" class="text-emerald-600 font-semibold text-[11px] underline">Lihat Struk</a>` : '<span class="text-slate-300">-</span>'}
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                        <div class="flex items-center justify-center space-x-1">
-                            <button type="button" onclick="openEditTransactionModal('${tx.id}')" class="text-slate-400 hover:text-emerald-600 p-1 rounded transition" title="Edit Transaksi">
-                                <i data-lucide="edit-3" class="w-4 h-4"></i>
-                            </button>
-                            <button type="button" onclick="deleteTransaction('${tx.id}')" class="text-slate-400 hover:text-red-500 p-1 rounded transition" title="Hapus Transaksi">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                // 1. RENDER KARTU RAPI UNTUK MOBILE HP
+                if (mobileContainer) {
+                    const card = document.createElement('div');
+                    card.className = "bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm space-y-2.5";
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">
+                                        ${badgeText}
+                                    </span>
+                                    <span class="text-[11px] font-mono text-slate-400">${tx.date}</span>
+                                </div>
+                                <h4 class="font-bold text-slate-800 text-sm leading-snug">
+                                    ${tx.categoryName || (isTransfer ? 'Transfer Antar Dompet' : '-')}
+                                    ${tx.subcategory ? `<span class="ml-1 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${tx.subcategory}</span>` : ''}
+                                </h4>
+                                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">${tx.note || '-'}</p>
+                            </div>
+                            <div class="text-right shrink-0">
+                                <span class="font-bold text-sm ${amtColor} block">${sign}${formatRupiah(tx.amount)}</span>
+                                <span class="text-[10px] text-slate-500 block mt-0.5">${tx.walletName}${isTransfer ? ' → ' + (tx.walletNameTo || '') : ''}</span>
+                            </div>
                         </div>
-                    </td>
-                `;
-                tbody.appendChild(tr);
+
+                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                            <div>
+                                ${hasReceipt ? `
+                                    <a href="${tx.receiptUrl}" target="_blank" class="inline-flex items-center text-emerald-600 font-semibold text-[11px] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                                        <i data-lucide="image" class="w-3.5 h-3.5 mr-1"></i> Lihat Struk
+                                    </a>
+                                ` : '<span class="text-[10px] text-slate-400">Tanpa foto struk</span>'}
+                            </div>
+                            <div class="flex items-center space-x-1.5">
+                                <button type="button" onclick="openEditTransactionModal('${tx.id}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-[11px] font-semibold flex items-center transition active:scale-95">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 mr-1"></i> Edit
+                                </button>
+                                <button type="button" onclick="deleteTransaction('${tx.id}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[11px] font-semibold flex items-center transition active:scale-95">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1"></i> Hapus
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    mobileContainer.appendChild(card);
+                }
+
+                // 2. RENDER BARIS TABEL UNTUK DESKTOP / LAPTOP
+                if (tbody) {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td class="py-3 px-4 font-mono text-slate-500">${tx.date}</td>
+                        <td class="py-3 px-4">
+                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">
+                                ${badgeText}
+                            </span>
+                        </td>
+                        <td class="py-3 px-4">
+                            <span class="font-semibold text-slate-800">${tx.categoryName || (isTransfer ? 'Transfer Antar Dompet' : '-')}</span>
+                            ${tx.subcategory ? `<span class="ml-1 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${tx.subcategory}</span>` : ''}
+                            <p class="text-[10px] text-slate-400">${tx.note || '-'}</p>
+                        </td>
+                        <td class="py-3 px-4 text-slate-600">${tx.walletName}${isTransfer ? ' → ' + (tx.walletNameTo || '') : ''}</td>
+                        <td class="py-3 px-4 text-right font-bold ${amtColor}">
+                            ${sign}${formatRupiah(tx.amount)}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            ${hasReceipt ? `<a href="${tx.receiptUrl}" target="_blank" class="text-emerald-600 font-semibold text-[11px] underline">Lihat Struk</a>` : '<span class="text-slate-300">-</span>'}
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                            <div class="flex items-center justify-center space-x-1">
+                                <button type="button" onclick="openEditTransactionModal('${tx.id}')" class="text-slate-400 hover:text-emerald-600 p-1 rounded transition" title="Edit Transaksi">
+                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button type="button" onclick="deleteTransaction('${tx.id}')" class="text-slate-400 hover:text-red-500 p-1 rounded transition" title="Hapus Transaksi">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
             });
             lucide.createIcons();
         }
