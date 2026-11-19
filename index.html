@@ -462,9 +462,14 @@
                             <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
                                 <input type="text" id="txSearchInput" oninput="renderFullTransactionsTable()" placeholder="Cari transaksi..." class="text-xs border border-slate-200 rounded-xl px-3 py-2 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-emerald-500">
                             </div>
-                            <button type="button" onclick="openAddTransactionModal()" class="w-full md:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center shadow-md">
-                                <i data-lucide="plus-circle" class="w-4 h-4 mr-1.5"></i> Catat Transaksi Baru
-                            </button>
+                            <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+                                <button type="button" onclick="handleDeleteAllTransactions()" class="w-full sm:w-auto bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center transition">
+                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1.5"></i> Hapus Semua Riwayat
+                                </button>
+                                <button type="button" onclick="openAddTransactionModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center shadow-md">
+                                    <i data-lucide="plus-circle" class="w-4 h-4 mr-1.5"></i> Catat Transaksi Baru
+                                </button>
+                            </div>
                         </div>
                         <div class="bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-hidden">
                             <div class="overflow-x-auto">
@@ -1511,6 +1516,13 @@
                 return { ok: true };
             }
 
+            if (method === 'deleteAllArtosTransactions') {
+                const { error } = await sb.from('transactions').delete().neq('id', '');
+                if (error) throw new Error(error.message);
+                await logArtosNotif('Semua riwayat transaksi telah dihapus/di-reset.', 'Reset Riwayat');
+                return { ok: true };
+            }
+
             if (method === 'uploadReceiptToDrive') {
                 const [base64Data, fileName] = args;
                 const res = await fetch(base64Data);
@@ -2291,7 +2303,7 @@
                     try { localStorage.setItem('artos_profile_avatar', dataUrl); } catch(err) {}
                     initUserProfile(dataUrl);
 
-                    // Simpan permanen ke server Google Sheets / ScriptProperties
+                    // Simpan permanen ke server Supabase
                     artosCall('saveArtosUserAvatar', [dataUrl])
                         .then(res => {
                             hideLoading();
@@ -2942,7 +2954,7 @@
                 } else if (titleLower.includes('pin') || titleLower.includes('face') || titleLower.includes('keamanan') || titleLower.includes('security')) {
                     badgeClass = "bg-purple-100 text-purple-700 border border-purple-200";
                     iconName = "shield-check";
-                } else if (titleLower.includes('hapus')) {
+                } else if (titleLower.includes('hapus') || titleLower.includes('reset')) {
                     badgeClass = "bg-rose-100 text-rose-700 border border-rose-200";
                     iconName = "trash-2";
                 }
@@ -3277,6 +3289,38 @@
                 });
         }
 
+        async function handleDeleteAllTransactions() {
+            if (!appState.transactions || appState.transactions.length === 0) {
+                showToast('Riwayat transaksi sudah kosong.');
+                return;
+            }
+
+            const totalTx = appState.transactions.length;
+            const confirmed = await showCustomConfirm({
+                title: 'Reset Semua Riwayat Transaksi',
+                message: `PERINGATAN: Anda akan menghapus SEMUA (${totalTx}) riwayat transaksi dari database. Data yang dihapus tidak dapat dikembalikan dan saldo dompet akan disesuaikan kembali. Lanjutkan?`,
+                confirmText: 'Ya, Hapus Semua'
+            });
+            if (!confirmed) return;
+
+            const confirmText = prompt('Ketik "HAPUS" (huruf besar semua) untuk mengonfirmasi penghapusan seluruh riwayat:');
+            if (confirmText !== 'HAPUS') {
+                showToast('Penghapusan seluruh riwayat dibatalkan.', 'error');
+                return;
+            }
+
+            showLoading('Mereset Riwayat Transaksi...', 'Menghapus seluruh catatan transaksi di Supabase');
+            artosCall('deleteAllArtosTransactions', [])
+                .then(() => artosLoadData(false))
+                .then(() => {
+                    showToast('Semua riwayat transaksi berhasil dihapus dan di-reset!');
+                })
+                .catch(err => {
+                    hideLoading();
+                    showToast(err.message || 'Gagal menghapus seluruh riwayat transaksi.', 'error');
+                });
+        }
+
         // --- KAMERA FOTO LANGSUNG STRUK (KOMPATIBEL WEBCAM & KAMERA BAWAAN HP) ---
         async function openDirectCameraModal() {
             openModal('directCameraModal');
@@ -3302,7 +3346,6 @@
             };
 
             if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                // Prioritaskan kamera belakang (environment), fallback ke webcam laptop (video: true)
                 let ok = await tryStream({ video: { facingMode: { ideal: "environment" } } });
                 if (!ok) {
                     ok = await tryStream({ video: true });
@@ -3469,7 +3512,7 @@
             const d = appState.debts.find(item => item.id === id);
             if (!d) return;
             const newStatus = d.status === 'LUNAS' ? 'BELUM_LUNAS' : 'LUNAS';
-            showLoading('Memperbarui Status...', 'Menyimpan ke Google Sheets');
+            showLoading('Memperbarui Status...', 'Menyimpan ke database');
             artosCall('saveArtosDebt', [{
                 id: d.id,
                 type: d.type,
