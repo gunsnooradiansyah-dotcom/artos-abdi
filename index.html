@@ -142,8 +142,8 @@
         </div>
     </div>
 
-    <!-- TOP HEADER STATUS BAR -->
-    <div class="bg-slate-900 text-white text-xs px-4 py-2 flex justify-between items-center z-50 shadow-md shrink-0">
+        <!-- TOP HEADER STATUS BAR -->
+        <div id="topStatusBar" class="hidden bg-slate-900 text-white text-xs px-4 py-2 flex justify-between items-center z-50 shadow-md shrink-0">
         <div class="flex items-center space-x-2">
             <span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
             <span class="font-bold tracking-wide">ARTOS ABDI v3.1</span>
@@ -2102,17 +2102,19 @@
 
         function unlockApp() {
             document.getElementById('authScreen').classList.add('hidden');
+            document.getElementById('topStatusBar').classList.remove('hidden');
             document.getElementById('mainAppLayout').classList.remove('hidden');
             clearPin();
             renderAllViews();
         }
 
-        function lockApp() {
+      function lockApp() {
             if (artosSessionToken) {
                 artosGasRun().artosLogout(artosSessionToken);
             }
             artosSessionToken = '';
             document.getElementById('mainAppLayout').classList.add('hidden');
+            document.getElementById('topStatusBar').classList.add('hidden');
             document.getElementById('authScreen').classList.remove('hidden');
             clearPin();
             stopAuthWebcam();
