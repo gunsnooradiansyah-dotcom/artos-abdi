@@ -4249,14 +4249,7 @@
             return Number(String(str || '').replace(/\D/g, '')) || 0;
         }
 
-        // Otomatis masuk mode Fullscreen saat sentuhan pertama di HP
-        document.addEventListener('click', function enableFullscreen() {
-            const docEl = document.documentElement;
-            if (!document.fullscreenElement && docEl.requestFullscreen) {
-                docEl.requestFullscreen().catch(() => {});
-            }
-            document.removeEventListener('click', enableFullscreen);
-        }, { once: true });
+       
     </script>
 </body>
 </html>
