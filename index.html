@@ -466,31 +466,102 @@
                         </div>
                     </section>
 
-                    <!-- SCREEN B: TRANSACTIONS (RESPONSIF MOBILE & DESKTOP) -->
-                    <section id="view-transactions" class="hidden space-y-4 sm:space-y-6">
-                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex flex-col md:flex-row gap-3 justify-between items-center">
-                            <div class="flex flex-wrap items-center gap-2 w-full md:w-auto">
-                                <input type="text" id="txSearchInput" oninput="renderFullTransactionsTable()" placeholder="Cari transaksi..." class="text-xs border border-slate-200 rounded-xl px-3 py-2.5 w-full sm:w-64 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <!-- SCREEN B: TRANSACTIONS / ARUS KAS (DENGAN LOGO DOMPET, FILTER PERIODE & PENGELOMPOKAN HARIAN) -->
+                    <section id="view-transactions" class="hidden space-y-4 sm:space-y-5">
+                        <!-- 1. SALDO AKUN DOMPET BERLOGO + KELOLA -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                                    <i data-lucide="wallet" class="w-4 h-4 text-emerald-600"></i> Saldo Akun
+                                </span>
+                                <button type="button" onclick="navigateTo('master')" class="text-xs font-bold text-teal-600 hover:text-teal-700 flex items-center gap-0.5">
+                                    Kelola <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                                </button>
                             </div>
-                            <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-                                <button type="button" onclick="handleDeleteAllTransactions()" class="w-full sm:w-auto bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center transition active:scale-95">
-                                    <i data-lucide="trash-2" class="w-4 h-4 mr-1.5"></i> Hapus Semua Riwayat
+                            <div id="txWalletStripContainer" class="flex gap-2.5 overflow-x-auto pb-1"></div>
+                        </div>
+
+                        <!-- 2. FILTER RENTANG PERIODE CEPAT + PENCARIAN -->
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm space-y-3">
+                            <div class="flex flex-wrap items-center gap-1.5">
+                                <button type="button" onclick="setTxPeriodFilter('ALL')" id="txPeriodALL" class="px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-xs transition">Semua</button>
+                                <button type="button" onclick="setTxPeriodFilter('7D')" id="txPeriod7D" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">7 hari</button>
+                                <button type="button" onclick="setTxPeriodFilter('THIS_MONTH')" id="txPeriodTHIS_MONTH" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Bulan ini</button>
+                                <button type="button" onclick="setTxPeriodFilter('LAST_MONTH')" id="txPeriodLAST_MONTH" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition">Bulan lalu</button>
+                                <button type="button" onclick="toggleTxCustomDateBox()" id="txPeriodCUSTOM" class="px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition flex items-center gap-1">
+                                    <i data-lucide="calendar" class="w-3 h-3"></i> Pilih tanggal
                                 </button>
-                                <button type="button" onclick="openAddTransactionModal()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl flex items-center justify-center shadow-md transition active:scale-95">
-                                    <i data-lucide="plus-circle" class="w-4 h-4 mr-1.5"></i> Catat Transaksi Baru
-                                </button>
+                            </div>
+
+                            <!-- CUSTOM DATE RANGE PICKER -->
+                            <div id="txCustomDateBox" class="hidden grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 border-t border-slate-100">
+                                <div>
+                                    <label class="text-[10px] font-semibold text-slate-500">Dari Tanggal</label>
+                                    <input type="date" id="txFilterDateStart" onchange="renderFullTransactionsTable()" class="w-full text-xs border border-slate-200 rounded-xl px-2.5 py-1.5 mt-0.5">
+                                </div>
+                                <div>
+                                    <label class="text-[10px] font-semibold text-slate-500">Sampai Tanggal</label>
+                                    <input type="date" id="txFilterDateEnd" onchange="renderFullTransactionsTable()" class="w-full text-xs border border-slate-200 rounded-xl px-2.5 py-1.5 mt-0.5">
+                                </div>
+                                <div class="col-span-2 sm:col-span-1 flex items-end">
+                                    <button type="button" onclick="setTxPeriodFilter('ALL')" class="w-full py-1.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-xl text-xs font-semibold">Reset Tanggal</button>
+                                </div>
+                            </div>
+
+                            <!-- 3 KARTU RINGKASAN: MASUK - KELUAR - BERSIH -->
+                            <div class="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
+                                <div class="p-3 rounded-2xl bg-emerald-50/90 border border-emerald-200/80">
+                                    <span class="text-[11px] font-bold text-emerald-700 block">Masuk</span>
+                                    <span id="txSummaryIncome" class="text-xs sm:text-sm font-extrabold text-slate-900 block mt-0.5 truncate">Rp 0</span>
+                                    <span id="txSummaryIncomeCount" class="text-[10px] text-emerald-600 font-medium block mt-0.5">0 trx</span>
+                                </div>
+                                <div class="p-3 rounded-2xl bg-rose-50/90 border border-rose-200/80">
+                                    <span class="text-[11px] font-bold text-rose-700 block">Keluar</span>
+                                    <span id="txSummaryExpense" class="text-xs sm:text-sm font-extrabold text-slate-900 block mt-0.5 truncate">Rp 0</span>
+                                    <span id="txSummaryExpenseCount" class="text-[10px] text-rose-600 font-medium block mt-0.5">0 trx</span>
+                                </div>
+                                <div class="p-3 rounded-2xl bg-slate-100/90 border border-slate-200/80">
+                                    <span class="text-[11px] font-bold text-sky-700 block">Bersih</span>
+                                    <span id="txSummaryNet" class="text-xs sm:text-sm font-extrabold text-slate-900 block mt-0.5 truncate">Rp 0</span>
+                                    <span id="txSummaryWalletFilterLabel" class="text-[10px] text-slate-500 font-medium block mt-0.5 truncate">Semua dompet</span>
+                                </div>
+                            </div>
+
+                            <!-- PROGRESS BAR PENGELUARAN PER KATEGORI -->
+                            <div id="txCategoryBreakdownBox" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-2 hidden">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-slate-800">Pengeluaran per kategori</span>
+                                    <span id="txTopCatBadge" class="text-[10px] font-semibold text-rose-600"></span>
+                                </div>
+                                <div id="txCategoryProgressBars" class="space-y-2"></div>
+                            </div>
+
+                            <!-- SEARCH BAR & ACTION BUTTONS -->
+                            <div class="flex flex-col md:flex-row gap-2.5 justify-between items-center pt-1">
+                                <div class="relative w-full md:w-72">
+                                    <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                                    <input type="text" id="txSearchInput" oninput="renderFullTransactionsTable()" placeholder="Cari kategori, catatan, atau kata kunci..." class="text-xs border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 w-full focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                </div>
+                                <div class="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
+                                    <button type="button" onclick="handleDeleteAllTransactions()" class="w-full sm:w-auto bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center justify-center transition active:scale-95">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1.5"></i> Hapus Semua
+                                    </button>
+                                    <button type="button" onclick="openAddTransactionModal()" class="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold px-4 py-2 rounded-xl flex items-center justify-center shadow-md transition active:scale-95">
+                                        <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Catat
+                                    </button>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- TAMPILAN KARTU KHUSUS MOBILE HP (TIDAK TERPOTONG) -->
-                        <div id="transactionsMobileCards" class="md:hidden space-y-3"></div>
+                        <!-- TAMPILAN TIMELINE DIKELOMPOKKAN PER HARI (MOBILE & TABLET) -->
+                        <div id="transactionsMobileCards" class="md:hidden space-y-4"></div>
 
-                        <!-- TAMPILAN TABEL KHUSUS DESKTOP / TABLET -->
+                        <!-- TAMPILAN TABEL LENGKAP DESKTOP -->
                         <div class="hidden md:block bg-white border border-slate-200/80 rounded-2xl shadow-sm overflow-x-auto">
                             <table class="w-full text-left text-xs">
                                 <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-[10px]">
                                     <tr>
-                                        <th class="py-3 px-4">Tanggal</th>
+                                        <th class="py-3 px-4">Tanggal & Jam</th>
                                         <th class="py-3 px-4">Tipe</th>
                                         <th class="py-3 px-4">Kategori & Catatan</th>
                                         <th class="py-3 px-4">Dompet</th>
@@ -501,6 +572,12 @@
                                 </thead>
                                 <tbody id="fullTransactionsTable" class="divide-y divide-slate-100"></tbody>
                             </table>
+                        </div>
+
+                        <!-- BANNER INFO SINKRONISASI NOTIFIKASI -->
+                        <div class="px-3 py-2.5 rounded-xl bg-slate-100/80 border border-slate-200/70 text-[11px] text-slate-500 leading-relaxed flex items-start gap-2">
+                            <i data-lucide="info" class="w-4 h-4 text-teal-600 shrink-0 mt-0.5"></i>
+                            <span>Disusun dari notifikasi bank yang tertangkap otomatis (BRImo, SeaBank, BCA, dll.) + catatan manual. Tidak semua bank mengirim notifikasi uang keluar; catat transaksi tunai & pindah dana secara manual.</span>
                         </div>
                     </section>
 
@@ -612,31 +689,48 @@
                         </div>
                     </section>
 
-                    <!-- SCREEN F: MASTER DOMPET & KATEGORI -->
+                    <!-- SCREEN F: MASTER DOMPET, KATEGORI BERIKON & KATA KUNCI OTOMATIS -->
                     <section id="view-master" class="hidden space-y-6">
                         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                            <!-- MASTER DOMPET -->
+                            <!-- MASTER DOMPET DENGAN LOGO BANK/EWALLET -->
                             <div class="bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm space-y-4">
                                 <div class="flex justify-between items-center border-b pb-3">
-                                    <h3 class="font-bold text-slate-800 text-sm">Akun Dompet & Bank</h3>
-                                    <button type="button" onclick="openModal('addWalletModal')" class="text-xs bg-emerald-50 text-emerald-600 font-semibold px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition">+ Tambah Dompet</button>
+                                    <div>
+                                        <h3 class="font-bold text-slate-800 text-sm">Akun Dompet & Bank</h3>
+                                        <p class="text-[10px] text-slate-400">Otomatis menampilkan logo BCA, BRI, SeaBank, DANA, dll.</p>
+                                    </div>
+                                    <button type="button" onclick="openModal('addWalletModal')" class="text-xs bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-xl hover:bg-emerald-700 transition shadow-sm">+ Tambah</button>
                                 </div>
-                                <div id="walletsListContainer" class="space-y-2 max-h-[600px] overflow-y-auto pr-1"></div>
+                                <div id="walletsListContainer" class="space-y-2.5 max-h-[600px] overflow-y-auto pr-1"></div>
                             </div>
 
-                            <!-- MASTER KATEGORI & SUBKATEGORI -->
+                            <!-- MASTER KATEGORI BERIKON (TAMBAH, EDIT, HAPUS) -->
                             <div class="lg:col-span-2 bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm space-y-4">
                                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b pb-3">
                                     <div>
-                                        <h3 class="font-bold text-slate-800 text-sm">Master Kategori & Subkategori</h3>
-                                        <p class="text-[11px] text-slate-500">Kelola kategori pengeluaran dan pemasukan</p>
+                                        <h3 class="font-bold text-slate-800 text-sm">Master Kategori Berikon & Kata Kunci</h3>
+                                        <p class="text-[11px] text-slate-500">Tambah, edit ikon/nama, hapus kategori, serta atur kata kunci otomatis</p>
                                     </div>
                                     <div class="flex items-center space-x-2">
                                         <input type="text" id="catSearchInput" oninput="renderMasterCategoriesList()" placeholder="Cari kategori..." class="text-xs border border-slate-200 rounded-xl px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                                        <button type="button" onclick="openModal('addCategoryModal')" class="text-xs bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-xl hover:bg-emerald-700 transition shadow-sm whitespace-nowrap">+ Tambah Kategori</button>
+                                        <button type="button" onclick="openAddCategoryModal()" class="text-xs bg-emerald-600 text-white font-semibold px-3 py-1.5 rounded-xl hover:bg-emerald-700 transition shadow-sm whitespace-nowrap">+ Tambah Kategori</button>
                                     </div>
                                 </div>
-                                <div id="categoriesListContainer" class="space-y-3 max-h-[600px] overflow-y-auto pr-1"></div>
+                                <div id="categoriesListContainer" class="space-y-3 max-h-[520px] overflow-y-auto pr-1"></div>
+
+                                <!-- DAFTAR KATA KUNCI PINTAR (SMART KEYWORDS) -->
+                                <div class="pt-4 border-t border-slate-200 space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <h4 class="font-bold text-slate-800 text-xs flex items-center gap-1.5">
+                                                <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600"></i> Kamus Kata Kunci Otomatis (Auto-Kategori)
+                                            </h4>
+                                            <p class="text-[10px] text-slate-500">Jika catatan atau notifikasi mengandung kata kunci ini, kategori langsung terpilih otomatis.</p>
+                                        </div>
+                                        <button type="button" onclick="openModal('addKeywordModal')" class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-2.5 py-1 rounded-lg hover:bg-emerald-100 transition">+ Kata Kunci</button>
+                                    </div>
+                                    <div id="smartRulesListContainer" class="flex flex-wrap gap-1.5"></div>
+                                </div>
                             </div>
                         </div>
                     </section>
@@ -765,75 +859,102 @@
         </div>
     </div>
 
-    <!-- MODAL CATAT / EDIT TRANSAKSI -->
-    <div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
-            <div class="p-4 bg-slate-900 text-white flex justify-between items-center shrink-0">
+    <!-- MODAL CATAT / EDIT TRANSAKSI (DENGAN PILIHAN KATEGORI BERIKON, JAM, & AUTO-KEYWORD) -->
+    <div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 hidden">
+        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="p-4 bg-teal-600 text-white flex justify-between items-center shrink-0">
                 <h3 class="font-bold text-base flex items-center" id="transactionModalTitle">
-                    <i data-lucide="plus-circle" class="w-5 h-5 mr-2 text-emerald-400"></i> Catat Transaksi Keuangan
+                    <i data-lucide="plus-circle" class="w-5 h-5 mr-2 text-white"></i> Catat Transaksi
                 </h3>
-                <button type="button" onclick="closeModal('addTransactionModal')" class="text-slate-400 hover:text-white">
+                <button type="button" onclick="closeModal('addTransactionModal')" class="text-white/80 hover:text-white p-1">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
             
-            <form onsubmit="handleSaveTransaction(event)" class="p-5 space-y-4 overflow-y-auto flex-1">
+            <form onsubmit="handleSaveTransaction(event)" class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
                 <input type="hidden" id="editTxId">
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Tipe Transaksi</label>
-                        <select id="txType" onchange="handleTxTypeChange()" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
-                            <option value="EXPENSE">Pengeluaran (Keluar)</option>
-                            <option value="INCOME">Pemasukan (Masuk)</option>
-                            <option value="TRANSFER">Transfer Antar Dompet</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Nominal (Rp)</label>
-                        <input type="text" inputmode="numeric" id="txAmount" required placeholder="misal: 100.000" oninput="formatCurrencyInput(this)" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold text-slate-800">
+                <select id="txType" onchange="handleTxTypeChange()" class="hidden">
+                    <option value="EXPENSE">Pengeluaran (Keluar)</option>
+                    <option value="INCOME">Pemasukan (Masuk)</option>
+                    <option value="TRANSFER">Transfer Antar Dompet</option>
+                </select>
+
+                <!-- 3 TAB TIPE TRANSAKSI -->
+                <div class="grid grid-cols-3 gap-2">
+                    <button type="button" id="txTypeBtnINCOME" onclick="setTxTypePill('INCOME')" class="py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Pemasukan</button>
+                    <button type="button" id="txTypeBtnEXPENSE" onclick="setTxTypePill('EXPENSE')" class="py-2.5 rounded-2xl bg-emerald-600 text-white text-xs font-bold shadow-sm transition">Pengeluaran</button>
+                    <button type="button" id="txTypeBtnTRANSFER" onclick="setTxTypePill('TRANSFER')" class="py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Transfer</button>
+                </div>
+
+                <!-- KOTAK NOMINAL BESAR -->
+                <div class="relative border-2 border-teal-500 rounded-2xl px-3.5 py-2.5 bg-teal-50/20">
+                    <span class="text-[10px] font-bold text-teal-600 uppercase tracking-wider block">Nominal</span>
+                    <div class="flex items-center mt-0.5">
+                        <span class="text-base font-bold text-slate-500 mr-2">Rp</span>
+                        <input type="text" inputmode="numeric" id="txAmount" required placeholder="0" oninput="formatCurrencyInput(this)" class="w-full text-xl font-extrabold text-slate-900 bg-transparent outline-none">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3" id="walletSelectionGrid">
+                <!-- DOMPET SUMBER & TUJUAN -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="walletSelectionGrid">
                     <div>
-                        <label class="text-[11px] font-semibold text-slate-600" id="txSourceWalletLabel">Dompet / Rekening</label>
-                        <select id="txWalletSelect" required class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+                        <label class="text-[11px] font-semibold text-slate-600" id="txSourceWalletLabel">Keluar dari akun</label>
+                        <select id="txWalletSelect" required class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-800 bg-slate-50"></select>
                     </div>
                     <div id="destWalletContainer" class="hidden">
-                        <label class="text-[11px] font-semibold text-slate-600">Dompet Tujuan Transfer</label>
-                        <select id="txWalletToSelect" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+                        <label class="text-[11px] font-semibold text-slate-600">Masuk ke akun tujuan</label>
+                        <select id="txWalletToSelect" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-800 bg-slate-50"></select>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3" id="categorySelectionGrid">
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Kategori Utama</label>
-                        <select id="txCategorySelect" onchange="updateSubcategoryOptions()" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none"></select>
+                <!-- GRID KATEGORI VISUAL BERIKON + TOMBOL ATUR -->
+                <div id="categorySelectionGrid" class="space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-bold text-slate-800">Kategori</label>
+                        <button type="button" onclick="closeModal('addTransactionModal'); navigateTo('master');" class="text-xs font-bold text-teal-600 hover:text-teal-700">Atur</button>
                     </div>
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Subkategori</label>
-                        <select id="txSubcategorySelect" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-medium text-slate-700"></select>
+                    <select id="txCategorySelect" onchange="updateSubcategoryOptions(); syncCategoryIconGrid();" class="hidden"></select>
+                    <div id="txCategoryIconGrid" class="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto pr-0.5"></div>
+
+                    <div id="txSubcategoryWrapper">
+                        <label class="text-[11px] font-semibold text-slate-600">Subkategori (Opsional)</label>
+                        <select id="txSubcategorySelect" class="w-full text-xs border border-slate-200 rounded-xl p-2 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-medium text-slate-700 bg-slate-50"></select>
                     </div>
                 </div>
 
+                <!-- TANGGAL & JAM TRANSAKSI -->
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="text-[11px] font-semibold text-slate-600">Tanggal</label>
-                        <input type="date" id="txDate" required class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <input type="date" id="txDate" required class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-700">
                     </div>
                     <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Catatan / Keterangan</label>
-                        <input type="text" id="txNote" placeholder="misal: Beli bensin / Makan siang" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <label class="text-[11px] font-semibold text-slate-600">Jam Transaksi</label>
+                        <input type="time" id="txTime" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-700">
                     </div>
                 </div>
 
-                <!-- Smart Auto Category Panel -->
-                <div id="smartCategoryPanel" class="hidden rounded-xl border border-emerald-200 bg-emerald-50/70 p-3">
-                    <div class="flex items-center justify-between gap-2">
-                        <div class="flex items-center gap-1.5 text-emerald-700 text-[11px] font-bold"><i data-lucide="sparkles" class="w-4 h-4"></i> Smart Category AI</div>
-                        <span id="smartCategorySource" class="text-[10px] text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200">Menganalisis...</span>
+                <!-- CATATAN & KATA KUNCI OTOMATIS -->
+                <div class="space-y-2">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Catatan / Nama Merchant / Keterangan</label>
+                        <input type="text" id="txNote" placeholder="misal: Token PLN / Gojek / Warung Padang" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none">
                     </div>
-                    <p id="smartCategoryMessage" class="text-[11px] text-slate-600 mt-1">Menganalisis catatan...</p>
+
+                    <!-- Smart Auto Category & Custom Keyword Input -->
+                    <div id="smartCategoryPanel" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50/70 p-3 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 text-emerald-700 text-[11px] font-bold"><i data-lucide="sparkles" class="w-4 h-4"></i> Smart Category & Kata Kunci</div>
+                            <span id="smartCategorySource" class="text-[10px] text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200">Menganalisis...</span>
+                        </div>
+                        <p id="smartCategoryMessage" class="text-[11px] text-slate-600">Menganalisis catatan...</p>
+                        <div id="customKeywordSaveBox" class="pt-1.5 border-t border-emerald-200/70 flex flex-col sm:flex-row gap-1.5 items-stretch sm:items-center">
+                            <input type="text" id="customKeywordInput" placeholder="Kata kunci (misal: kopi kenangan)" class="flex-1 text-[11px] bg-white border border-emerald-200 rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-emerald-500">
+                            <button type="button" onclick="saveCustomKeywordRule()" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition whitespace-nowrap">
+                                + Simpan Kata Kunci
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- PENGAMBILAN FOTO STRUK (KAMERA LANGSUNG & UPLOAD) -->
@@ -1082,25 +1203,66 @@
         </div>
     </div>
 
-    <!-- MODAL TAMBAH KATEGORI -->
+    <!-- MODAL TAMBAH / EDIT KATEGORI BERIKON & KATA KUNCI -->
     <div id="addCategoryModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-5 space-y-4">
-            <h3 class="font-bold text-slate-800 text-sm">Tambah Kategori</h3>
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+            <h3 id="categoryModalTitle" class="font-bold text-slate-800 text-sm">Tambah Kategori</h3>
             <form onsubmit="handleCreateCategory(event)" class="space-y-3">
+                <input type="hidden" id="editCategoryId">
+                <input type="hidden" id="addCatIconInput" value="tag">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Tipe Kategori</label>
+                        <select id="addCatTypeInput" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
+                            <option value="EXPENSE">Pengeluaran</option>
+                            <option value="INCOME">Pemasukan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-600">Nama Kategori</label>
+                        <input type="text" id="addCatNameInput" required placeholder="misal: Makan & Minum" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- PEMILIH IKON GAMBAR KATEGORI -->
                 <div>
-                    <label class="text-[11px] font-semibold text-slate-600">Tipe Kategori</label>
-                    <select id="addCatTypeInput" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
-                        <option value="EXPENSE">Pengeluaran</option>
-                        <option value="INCOME">Pemasukan</option>
-                    </select>
+                    <label class="text-[11px] font-semibold text-slate-600 block mb-1.5">Pilih Ikon Kategori</label>
+                    <div id="categoryIconPickerGrid" class="grid grid-cols-6 gap-2 p-2.5 bg-slate-50 border border-slate-200 rounded-2xl max-h-40 overflow-y-auto"></div>
+                </div>
+
+                <!-- INPUT KATA KUNCI OTOMATIS UNTUK KATEGORI INI -->
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-600">Kata Kunci Otomatis (Pisahkan dengan koma)</label>
+                    <input type="text" id="addCatKeywordsInput" placeholder="misal: gojek, grab, bensin, pertamina, parkir" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <p class="text-[10px] text-slate-400 mt-1">Setiap transaksi dengan kata di atas akan otomatis memakai kategori ini di waktu berikutnya.</p>
+                </div>
+
+                <div class="flex space-x-2 pt-2">
+                    <button type="button" onclick="closeModal('addCategoryModal')" class="flex-1 py-2.5 border text-xs font-semibold rounded-xl text-slate-600">Batal</button>
+                    <button type="submit" id="btnSubmitCategory" class="flex-1 py-2.5 bg-emerald-600 text-white font-semibold text-xs rounded-xl shadow-md">Simpan Kategori</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH KATA KUNCI OTOMATIS -->
+    <div id="addKeywordModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl p-5 space-y-4">
+            <h3 class="font-bold text-slate-800 text-sm flex items-center gap-1.5">
+                <i data-lucide="sparkles" class="w-4 h-4 text-emerald-600"></i> Tambah Kata Kunci Otomatis
+            </h3>
+            <form onsubmit="handleCreateStandaloneKeyword(event)" class="space-y-3">
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-600">Kata Kunci (Catatan / Notifikasi Bank)</label>
+                    <input type="text" id="standaloneKeywordInput" required placeholder="misal: token listrik / indomaret / gaji" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
                 </div>
                 <div>
-                    <label class="text-[11px] font-semibold text-slate-600">Nama Kategori</label>
-                    <input type="text" id="addCatNameInput" required placeholder="misal: Pendidikan / Asuransi" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    <label class="text-[11px] font-semibold text-slate-600">Hubungkan ke Kategori</label>
+                    <select id="standaloneKeywordCatSelect" required class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold"></select>
                 </div>
                 <div class="flex space-x-2 pt-2">
-                    <button type="button" onclick="closeModal('addCategoryModal')" class="flex-1 py-2 border text-xs font-semibold rounded-xl text-slate-600">Batal</button>
-                    <button type="submit" id="btnSubmitCategory" class="flex-1 py-2 bg-emerald-600 text-white font-semibold text-xs rounded-xl shadow-md">Simpan</button>
+                    <button type="button" onclick="closeModal('addKeywordModal')" class="flex-1 py-2 border text-xs font-semibold rounded-xl text-slate-600">Batal</button>
+                    <button type="submit" class="flex-1 py-2 bg-emerald-600 text-white font-semibold text-xs rounded-xl shadow-md">Simpan Kata Kunci</button>
                 </div>
             </form>
         </div>
@@ -1339,6 +1501,9 @@
 
         // Laporan filter periode aktif ('ALL', 'DAILY', 'WEEKLY', 'MONTHLY', 'YEARLY')
         let currentReportPeriod = 'ALL';
+        let currentTxPeriodFilter = 'ALL';
+        let currentTxWalletFilter = 'ALL';
+        let artosRealtimeChannel = null;
 
         // Smart Category State
         let smartAnalyzeTimer = null;
@@ -1351,8 +1516,116 @@
             transactions: [],
             goals: [],
             debts: [],
-            notifications: []
+            notifications: [],
+            smartRules: []
         };
+
+        // PALET IKON KATEGORI (LUCIDE + EMOJI VISUAL)
+        const CATEGORY_ICON_PRESETS = [
+            { id: 'utensils', emoji: '🍽️', label: 'Makan' },
+            { id: 'car', emoji: '🚗', label: 'Transport' },
+            { id: 'shopping-bag', emoji: '🛒', label: 'Belanja' },
+            { id: 'package', emoji: '📦', label: 'Stok' },
+            { id: 'zap', emoji: '💡', label: 'Listrik' },
+            { id: 'droplet', emoji: '🚰', label: 'Air' },
+            { id: 'wifi', emoji: '🌐', label: 'Internet' },
+            { id: 'smartphone', emoji: '📱', label: 'Pulsa' },
+            { id: 'home', emoji: '🏠', label: 'Rumah/KPR' },
+            { id: 'heart-pulse', emoji: '🩺', label: 'Kesehatan' },
+            { id: 'graduation-cap', emoji: '🎓', label: 'Pendidikan' },
+            { id: 'banknote', emoji: '💵', label: 'Gaji' },
+            { id: 'trending-up', emoji: '📈', label: 'Penjualan' },
+            { id: 'gift', emoji: '🎁', label: 'Bonus' },
+            { id: 'credit-card', emoji: '💳', label: 'Cicilan' },
+            { id: 'coffee', emoji: '☕', label: 'Kopi' },
+            { id: 'fuel', emoji: '⛽', label: 'Bensin' },
+            { id: 'tag', emoji: '🏷️', label: 'Lainnya' }
+        ];
+
+        function getCategoryMetaMap() {
+            try { return JSON.parse(localStorage.getItem('artos_cat_icons') || '{}'); } catch { return {}; }
+        }
+        function setCategoryIconLocal(catId, iconId) {
+            const map = getCategoryMetaMap();
+            map[catId] = iconId;
+            try { localStorage.setItem('artos_cat_icons', JSON.stringify(map)); } catch {}
+        }
+        function inferCategoryIcon(cat) {
+            const saved = getCategoryMetaMap()[cat.id];
+            if (saved) {
+                const found = CATEGORY_ICON_PRESETS.find(p => p.id === saved);
+                if (found) return found;
+            }
+            const n = String(cat.name || '').toLowerCase();
+            if (/makan|minum|kuliner|kopi|resto/.test(n)) return CATEGORY_ICON_PRESETS[0];
+            if (/transport|bensin|ojek|parkir|tol/.test(n)) return CATEGORY_ICON_PRESETS[1];
+            if (/belanja|mart|kebutuhan/.test(n)) return CATEGORY_ICON_PRESETS[2];
+            if (/stok|dagang|kulakan/.test(n)) return CATEGORY_ICON_PRESETS[3];
+            if (/listrik|pln|token/.test(n)) return CATEGORY_ICON_PRESETS[4];
+            if (/air|pdam/.test(n)) return CATEGORY_ICON_PRESETS[5];
+            if (/internet|wifi/.test(n)) return CATEGORY_ICON_PRESETS[6];
+            if (/pulsa|data|paket/.test(n)) return CATEGORY_ICON_PRESETS[7];
+            if (/rumah|sewa|kpr|kos/.test(n)) return CATEGORY_ICON_PRESETS[8];
+            if (/sehat|bpjs|obat|dokter/.test(n)) return CATEGORY_ICON_PRESETS[9];
+            if (/didik|sekolah|kuliah/.test(n)) return CATEGORY_ICON_PRESETS[10];
+            if (/gaji|upah/.test(n)) return CATEGORY_ICON_PRESETS[11];
+            if (/jual|usaha|omzet|bisnis/.test(n)) return CATEGORY_ICON_PRESETS[12];
+            if (/bonus|hadiah|cashback/.test(n)) return CATEGORY_ICON_PRESETS[13];
+            if (/cicil|utang|kartu/.test(n)) return CATEGORY_ICON_PRESETS[14];
+            return CATEGORY_ICON_PRESETS[17];
+        }
+
+        // BRAND LOGO & BADGE DOMPET (BANK, E-WALLET, TUNAI)
+        function getWalletBrandVisual(w) {
+            const name = String(w.name || '').toLowerCase();
+            const type = String(w.type || 'CASH').toUpperCase();
+            if (name.includes('bri') || name.includes('brimo')) {
+                return { code: 'BRI', bg: 'bg-blue-700 text-white', ring: 'border-blue-200', badge: 'BRImo / BRI' };
+            }
+            if (name.includes('bca')) {
+                return { code: 'BCA', bg: 'bg-sky-700 text-white', ring: 'border-sky-200', badge: 'Bank BCA' };
+            }
+            if (name.includes('mandiri') || name.includes('livin')) {
+                return { code: 'MDR', bg: 'bg-amber-500 text-slate-950', ring: 'border-amber-200', badge: 'Bank Mandiri' };
+            }
+            if (name.includes('bni')) {
+                return { code: 'BNI', bg: 'bg-orange-600 text-white', ring: 'border-orange-200', badge: 'Bank BNI' };
+            }
+            if (name.includes('btn')) {
+                return { code: 'BTN', bg: 'bg-blue-900 text-amber-300', ring: 'border-blue-200', badge: 'Bank BTN' };
+            }
+            if (name.includes('bsi') || name.includes('syariah')) {
+                return { code: 'BSI', bg: 'bg-teal-600 text-white', ring: 'border-teal-200', badge: 'Bank BSI' };
+            }
+            if (name.includes('seabank')) {
+                return { code: 'SEA', bg: 'bg-orange-500 text-white', ring: 'border-orange-200', badge: 'SeaBank' };
+            }
+            if (name.includes('jago')) {
+                return { code: 'JGO', bg: 'bg-amber-400 text-slate-900', ring: 'border-amber-200', badge: 'Bank Jago' };
+            }
+            if (name.includes('dana')) {
+                return { code: 'DANA', bg: 'bg-sky-500 text-white', ring: 'border-sky-200', badge: 'DANA' };
+            }
+            if (name.includes('gopay') || name.includes('gojek')) {
+                return { code: 'GPY', bg: 'bg-emerald-500 text-white', ring: 'border-emerald-200', badge: 'GoPay' };
+            }
+            if (name.includes('ovo')) {
+                return { code: 'OVO', bg: 'bg-purple-700 text-white', ring: 'border-purple-200', badge: 'OVO' };
+            }
+            if (name.includes('shopee')) {
+                return { code: 'SPY', bg: 'bg-orange-600 text-white', ring: 'border-orange-200', badge: 'ShopeePay' };
+            }
+            if (name.includes('linkaja')) {
+                return { code: 'LNK', bg: 'bg-red-600 text-white', ring: 'border-red-200', badge: 'LinkAja' };
+            }
+            if (type === 'BANK') {
+                return { code: 'BANK', bg: 'bg-indigo-600 text-white', ring: 'border-indigo-200', badge: 'Rekening Bank' };
+            }
+            if (type === 'EWALLET') {
+                return { code: 'EWLT', bg: 'bg-cyan-600 text-white', ring: 'border-cyan-200', badge: 'E-Wallet' };
+            }
+            return { code: '💵', bg: 'bg-emerald-600 text-white', ring: 'border-emerald-200', badge: 'Kas Tunai' };
+        }
 
         window.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
@@ -1418,7 +1691,7 @@
             if (!artosSessionToken) throw new Error('Sesi tidak tersedia. Silakan login kembali.');
 
             if (method === 'getArtosAppData') {
-                const [uRes, wRes, cRes, subRes, txRes, gRes, dRes, nRes] = await Promise.all([
+                const [uRes, wRes, cRes, subRes, txRes, gRes, dRes, nRes, rRes] = await Promise.all([
                     sb.from('artos_auth_users').select('display_name, avatar_url').eq('active', true).limit(1).maybeSingle(),
                     sb.from('wallets').select('*'),
                     sb.from('categories').select('*'),
@@ -1426,7 +1699,8 @@
                     sb.from('transactions').select('*').order('date', { ascending: true }),
                     sb.from('goals').select('*'),
                     sb.from('debts').select('*'),
-                    sb.from('notifications').select('*').order('date', { ascending: true })
+                    sb.from('notifications').select('*').order('date', { ascending: true }),
+                    sb.from('smart_rules').select('*').eq('active', true).order('priority', { ascending: false })
                 ]);
 
                 if (wRes.error) throw new Error(wRes.error.message);
@@ -1498,6 +1772,13 @@
                         title: n.type || 'Aktivitas',
                         text: n.message || '',
                         time: n.date ? new Date(n.date).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' }) : ''
+                    })),
+                    smartRules: (rRes.data || []).map(r => ({
+                        id: r.rule_id || r.id,
+                        keywords: r.keywords || '',
+                        categoryId: r.category_id || '',
+                        subcategory: r.subcategory_name || '',
+                        type: r.transaction_type || 'EXPENSE'
                     }))
                 };
             }
@@ -1599,7 +1880,41 @@
                     category_id: id, name: c.name, type: c.type, budget_limit: Number(c.budgetLimit || 0), active: true
                 });
                 if (error) throw new Error(error.message);
+                if (c.keywords && String(c.keywords).trim()) {
+                    await sb.from('smart_rules').insert({
+                        rule_id: genArtosId('RULE'),
+                        keywords: String(c.keywords).trim().toLowerCase(),
+                        category_id: id,
+                        subcategory_name: '',
+                        transaction_type: c.type,
+                        priority: 10,
+                        active: true
+                    });
+                }
                 return { ok: true, id: id };
+            }
+
+            if (method === 'saveArtosSmartRule') {
+                const r = args[0];
+                const kw = String(r.keywords || '').trim().toLowerCase();
+                if (!kw || !r.categoryId) throw new Error('Kata kunci dan kategori wajib diisi.');
+                const { error } = await sb.from('smart_rules').insert({
+                    rule_id: genArtosId('RULE'),
+                    keywords: kw,
+                    category_id: r.categoryId,
+                    subcategory_name: r.subcategory || '',
+                    transaction_type: r.type || 'EXPENSE',
+                    priority: 20,
+                    active: true
+                });
+                if (error) throw new Error(error.message);
+                return { ok: true };
+            }
+
+            if (method === 'deleteArtosSmartRule') {
+                const ruleId = args[0];
+                await sb.from('smart_rules').delete().eq('rule_id', ruleId);
+                return { ok: true };
             }
 
             if (method === 'deleteArtosCategory') {
@@ -1753,6 +2068,8 @@
                     appState.goals = data.goals || [];
                     appState.debts = data.debts || [];
                     appState.notifications = data.notifications || [];
+                    appState.smartRules = data.smartRules || [];
+                    startArtosRealtimeSync();
                     if (data.userAvatar) {
                         appState.userAvatar = data.userAvatar;
                         try { localStorage.setItem('artos_profile_avatar', data.userAvatar); } catch(e) {}
@@ -2511,26 +2828,281 @@
             });
         }
 
+        function startArtosRealtimeSync() {
+            if (artosRealtimeChannel) return;
+            try {
+                artosRealtimeChannel = sb
+                    .channel('artos-abdi-live')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => {
+                        artosLoadData(false);
+                    })
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, () => {
+                        artosLoadData(false);
+                    })
+                    .subscribe();
+            } catch (e) {}
+        }
+
+        function setTxPeriodFilter(period) {
+            currentTxPeriodFilter = period;
+            const customBox = document.getElementById('txCustomDateBox');
+            if (customBox && period !== 'CUSTOM') customBox.classList.add('hidden');
+
+            ['ALL', '7D', 'THIS_MONTH', 'LAST_MONTH', 'CUSTOM'].forEach(p => {
+                const btn = document.getElementById('txPeriod' + p);
+                if (!btn) return;
+                if (p === period) {
+                    btn.className = "px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-600 text-white shadow-xs transition";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 transition";
+                }
+            });
+            renderFullTransactionsTable();
+        }
+
+        function toggleTxCustomDateBox() {
+            const customBox = document.getElementById('txCustomDateBox');
+            if (customBox) customBox.classList.toggle('hidden');
+            setTxPeriodFilter('CUSTOM');
+        }
+
+        function setTxWalletFilter(walletId) {
+            currentTxWalletFilter = (currentTxWalletFilter === walletId) ? 'ALL' : walletId;
+            renderFullTransactionsTable();
+        }
+
+        function extractTxTimeFromNote(note) {
+            const m = String(note || '').match(/\[(\d{2}:\d{2})\]|\[Auto\s+[^\]]*?(\d{2}:\d{2})\]/);
+            return m ? (m[1] || m[2]) : '';
+        }
+
+        function formatIndoDayHeader(dateStr) {
+            if (!dateStr) return '-';
+            const parts = String(dateStr).split('-');
+            if (parts.length !== 3) return dateStr;
+            const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' });
+        }
+
+        function renderTxWalletStrip() {
+            const strip = document.getElementById('txWalletStripContainer');
+            if (!strip) return;
+            strip.innerHTML = '';
+
+            appState.wallets.forEach(w => {
+                const brand = getWalletBrandVisual(w);
+                const isSelected = currentTxWalletFilter === w.id;
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.onclick = () => setTxWalletFilter(w.id);
+                card.className = `shrink-0 min-w-[148px] text-left p-3 rounded-2xl border transition active:scale-95 ${
+                    isSelected
+                        ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
+                        : 'bg-slate-50/90 hover:bg-white border-slate-200/90'
+                }`;
+                card.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="w-6 h-6 rounded-lg ${brand.bg} text-[9px] font-extrabold flex items-center justify-center shrink-0 shadow-2xs">${brand.code}</span>
+                        <span class="text-xs font-bold text-slate-700 truncate">${w.name}</span>
+                    </div>
+                    <p class="text-sm font-extrabold text-slate-900 mt-1.5">${formatRupiah(w.balance)}</p>
+                `;
+                strip.appendChild(card);
+            });
+        }
+
         function renderFullTransactionsTable() {
+            renderTxWalletStrip();
+
             const tbody = document.getElementById('fullTransactionsTable');
             const mobileContainer = document.getElementById('transactionsMobileCards');
             const search = (document.getElementById('txSearchInput')?.value || '').toLowerCase();
             if (tbody) tbody.innerHTML = '';
             if (mobileContainer) mobileContainer.innerHTML = '';
 
-            const filtered = appState.transactions.filter(t => 
-                (t.categoryName || '').toLowerCase().includes(search) || 
-                (t.note || '').toLowerCase().includes(search) ||
-                (t.walletName || '').toLowerCase().includes(search) ||
-                (t.subcategory || '').toLowerCase().includes(search)
-            );
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+
+            const filtered = appState.transactions.filter(t => {
+                const matchSearch =
+                    (t.categoryName || '').toLowerCase().includes(search) ||
+                    (t.note || '').toLowerCase().includes(search) ||
+                    (t.walletName || '').toLowerCase().includes(search) ||
+                    (t.subcategory || '').toLowerCase().includes(search);
+                if (!matchSearch) return false;
+
+                if (currentTxWalletFilter !== 'ALL' && t.walletId !== currentTxWalletFilter && t.walletIdTo !== currentTxWalletFilter) {
+                    return false;
+                }
+
+                if (currentTxPeriodFilter === '7D') {
+                    const d7 = new Date();
+                    d7.setDate(now.getDate() - 7);
+                    const minStr = d7.toISOString().split('T')[0];
+                    return t.date >= minStr && t.date <= todayStr;
+                }
+                if (currentTxPeriodFilter === 'THIS_MONTH') {
+                    const prefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+                    return String(t.date || '').startsWith(prefix);
+                }
+                if (currentTxPeriodFilter === 'LAST_MONTH') {
+                    const lm = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+                    const prefix = `${lm.getFullYear()}-${String(lm.getMonth() + 1).padStart(2, '0')}`;
+                    return String(t.date || '').startsWith(prefix);
+                }
+                if (currentTxPeriodFilter === 'CUSTOM') {
+                    const s = document.getElementById('txFilterDateStart')?.value;
+                    const e = document.getElementById('txFilterDateEnd')?.value;
+                    if (s && t.date < s) return false;
+                    if (e && t.date > e) return false;
+                }
+                return true;
+            });
+
+            // Hitung Summary Masuk / Keluar / Bersih & Pengeluaran per Kategori
+            let sumIn = 0, cntIn = 0, sumOut = 0, cntOut = 0;
+            const expByCat = {};
+            filtered.forEach(t => {
+                const amt = Number(t.amount) || 0;
+                if (t.type === 'INCOME') { sumIn += amt; cntIn++; }
+                else if (t.type === 'EXPENSE') {
+                    sumOut += amt; cntOut++;
+                    const cname = t.categoryName || 'Lainnya';
+                    expByCat[cname] = (expByCat[cname] || 0) + amt;
+                }
+            });
+
+            const elIn = document.getElementById('txSummaryIncome');
+            if (elIn) {
+                elIn.textContent = formatRupiah(sumIn);
+                document.getElementById('txSummaryIncomeCount').textContent = `${cntIn} trx`;
+                document.getElementById('txSummaryExpense').textContent = formatRupiah(sumOut);
+                document.getElementById('txSummaryExpenseCount').textContent = `${cntOut} trx`;
+                const netVal = sumIn - sumOut;
+                const elNet = document.getElementById('txSummaryNet');
+                elNet.textContent = (netVal < 0 ? '-' : '') + formatRupiah(Math.abs(netVal));
+                elNet.className = `text-xs sm:text-sm font-extrabold block mt-0.5 truncate ${netVal >= 0 ? 'text-emerald-700' : 'text-rose-600'}`;
+                const wObj = appState.wallets.find(x => x.id === currentTxWalletFilter);
+                document.getElementById('txSummaryWalletFilterLabel').textContent = wObj ? wObj.name : 'Semua dompet';
+            }
+
+            // Render Bar Pengeluaran per Kategori
+            const breakdownBox = document.getElementById('txCategoryBreakdownBox');
+            const barsContainer = document.getElementById('txCategoryProgressBars');
+            if (breakdownBox && barsContainer) {
+                const entries = Object.entries(expByCat).sort((a, b) => b[1] - a[1]).slice(0, 4);
+                if (entries.length > 0 && sumOut > 0) {
+                    breakdownBox.classList.remove('hidden');
+                    barsContainer.innerHTML = entries.map(([catName, val]) => {
+                        const pct = Math.min(100, Math.round((val / sumOut) * 100));
+                        return `
+                            <div class="space-y-1">
+                                <div class="flex justify-between text-[11px]">
+                                    <span class="font-semibold text-slate-700">${catName} <span class="text-slate-400">(${pct}%)</span></span>
+                                    <span class="font-bold text-slate-900">${formatRupiah(val)}</span>
+                                </div>
+                                <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-rose-500 rounded-full" style="width:${pct}%"></div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    breakdownBox.classList.add('hidden');
+                }
+            }
 
             if (filtered.length === 0) {
-                if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada transaksi yang cocok.</td></tr>`;
-                if (mobileContainer) mobileContainer.innerHTML = `<div class="bg-white border border-slate-200/80 rounded-2xl p-6 text-center text-xs text-slate-400">Tidak ada transaksi yang cocok.</div>`;
+                if (tbody) tbody.innerHTML = `<tr><td colspan="7" class="text-center py-8 text-slate-400">Tidak ada transaksi pada periode ini.</td></tr>`;
+                if (mobileContainer) mobileContainer.innerHTML = `<div class="bg-white border border-slate-200/80 rounded-2xl p-6 text-center text-xs text-slate-400">Tidak ada transaksi pada periode ini.</div>`;
                 return;
             }
 
+            // Kelompokkan transaksi per tanggal untuk tampilan mobile timeline seperti contoh
+            if (mobileContainer) {
+                const grouped = {};
+                [...filtered].reverse().forEach(tx => {
+                    const d = tx.date || 'Tanpa Tanggal';
+                    if (!grouped[d]) grouped[d] = { items: [], inc: 0, exp: 0 };
+                    grouped[d].items.push(tx);
+                    if (tx.type === 'INCOME') grouped[d].inc += Number(tx.amount) || 0;
+                    if (tx.type === 'EXPENSE') grouped[d].exp += Number(tx.amount) || 0;
+                });
+
+                Object.keys(grouped).forEach(dateKey => {
+                    const grp = grouped[dateKey];
+                    const section = document.createElement('div');
+                    section.className = "space-y-2";
+
+                    const header = document.createElement('div');
+                    header.className = "flex items-center justify-between px-1";
+                    header.innerHTML = `
+                        <span class="text-xs font-extrabold text-slate-800">${formatIndoDayHeader(dateKey)}</span>
+                        <div class="flex items-center gap-2 text-[11px] font-bold">
+                            ${grp.inc > 0 ? `<span class="text-emerald-600">+${formatRupiah(grp.inc)}</span>` : ''}
+                            ${grp.exp > 0 ? `<span class="text-rose-600">-${formatRupiah(grp.exp)}</span>` : ''}
+                        </div>
+                    `;
+                    section.appendChild(header);
+
+                    grp.items.forEach(tx => {
+                        const isInc = tx.type === 'INCOME';
+                        const isTransfer = tx.type === 'TRANSFER';
+                        const sign = isInc ? '+' : (isTransfer ? '⇄' : '-');
+                        const amtColor = isInc ? 'text-emerald-600' : (isTransfer ? 'text-blue-600' : 'text-rose-600');
+                        const iconBg = isInc ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : (isTransfer ? 'bg-blue-50 text-blue-600 border-blue-200' : 'bg-rose-50 text-rose-600 border-rose-200');
+                        const catObj = appState.categories.find(c => c.id === tx.categoryId) || { id: tx.categoryId, name: tx.categoryName };
+                        const catIcon = inferCategoryIcon(catObj);
+                        const txTime = extractTxTimeFromNote(tx.note);
+                        const hasReceipt = tx.receiptUrl && (tx.receiptUrl.includes('supabase.co') || tx.receiptUrl.startsWith('data:image'));
+
+                        const card = document.createElement('div');
+                        card.className = "bg-white border border-slate-200/90 rounded-2xl p-3.5 shadow-2xs space-y-2";
+                        card.innerHTML = `
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center gap-3 min-w-0 flex-1">
+                                    <div class="w-10 h-10 rounded-xl border ${iconBg} flex items-center justify-center text-base shrink-0">
+                                        ${isTransfer ? '⇄' : catIcon.emoji}
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <h4 class="font-bold text-slate-800 text-sm truncate">
+                                            ${tx.categoryName || (isTransfer ? 'Transfer Antar Dompet' : 'Lainnya')}
+                                        </h4>
+                                        <p class="text-[11px] font-semibold text-slate-500 truncate">${tx.walletName}${isTransfer ? ' → ' + (tx.walletNameTo || '') : ''}</p>
+                                        ${tx.note ? `<p class="text-[10px] text-slate-400 truncate mt-0.5">${tx.note}</p>` : ''}
+                                    </div>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <span class="font-extrabold text-sm ${amtColor} block">${sign}${formatRupiah(tx.amount)}</span>
+                                    <span class="text-[10px] font-mono text-slate-400 block mt-0.5">${txTime || tx.date}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+                                <div>
+                                    ${hasReceipt ? `
+                                        <a href="${tx.receiptUrl}" target="_blank" class="inline-flex items-center text-emerald-600 font-semibold text-[11px] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
+                                            <i data-lucide="image" class="w-3.5 h-3.5 mr-1"></i> Struk
+                                        </a>
+                                    ` : (tx.subcategory ? `<span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md font-medium">${tx.subcategory}</span>` : '<span></span>')}
+                                </div>
+                                <div class="flex items-center space-x-1.5">
+                                    <button type="button" onclick="openEditTransactionModal('${tx.id}')" class="px-2.5 py-1 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-[11px] font-semibold flex items-center transition active:scale-95">
+                                        <i data-lucide="edit-3" class="w-3 h-3 mr-1"></i> Edit
+                                    </button>
+                                    <button type="button" onclick="deleteTransaction('${tx.id}')" class="px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[11px] font-semibold flex items-center transition active:scale-95">
+                                        <i data-lucide="trash-2" class="w-3 h-3 mr-1"></i> Hapus
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        section.appendChild(card);
+                    });
+                    mobileContainer.appendChild(section);
+                });
+            }
+
+            // Render Baris Tabel Desktop
             [...filtered].reverse().forEach(tx => {
                 const isInc = tx.type === 'INCOME';
                 const isTransfer = tx.type === 'TRANSFER';
@@ -2539,58 +3111,12 @@
                 const badgeText = isInc ? 'MASUK' : (isTransfer ? 'TRANSFER' : 'KELUAR');
                 const amtColor = isInc ? 'text-emerald-600' : (isTransfer ? 'text-blue-600' : 'text-red-500');
                 const hasReceipt = tx.receiptUrl && (tx.receiptUrl.includes('supabase.co') || tx.receiptUrl.startsWith('data:image'));
+                const txTime = extractTxTimeFromNote(tx.note);
 
-                // 1. RENDER KARTU RAPI UNTUK MOBILE HP
-                if (mobileContainer) {
-                    const card = document.createElement('div');
-                    card.className = "bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm space-y-2.5";
-                    card.innerHTML = `
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-1.5 mb-1">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">
-                                        ${badgeText}
-                                    </span>
-                                    <span class="text-[11px] font-mono text-slate-400">${tx.date}</span>
-                                </div>
-                                <h4 class="font-bold text-slate-800 text-sm leading-snug">
-                                    ${tx.categoryName || (isTransfer ? 'Transfer Antar Dompet' : '-')}
-                                    ${tx.subcategory ? `<span class="ml-1 text-[10px] bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded font-medium">${tx.subcategory}</span>` : ''}
-                                </h4>
-                                <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">${tx.note || '-'}</p>
-                            </div>
-                            <div class="text-right shrink-0">
-                                <span class="font-bold text-sm ${amtColor} block">${sign}${formatRupiah(tx.amount)}</span>
-                                <span class="text-[10px] text-slate-500 block mt-0.5">${tx.walletName}${isTransfer ? ' → ' + (tx.walletNameTo || '') : ''}</span>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center justify-between pt-2 border-t border-slate-100">
-                            <div>
-                                ${hasReceipt ? `
-                                    <a href="${tx.receiptUrl}" target="_blank" class="inline-flex items-center text-emerald-600 font-semibold text-[11px] bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                                        <i data-lucide="image" class="w-3.5 h-3.5 mr-1"></i> Lihat Struk
-                                    </a>
-                                ` : '<span class="text-[10px] text-slate-400">Tanpa foto struk</span>'}
-                            </div>
-                            <div class="flex items-center space-x-1.5">
-                                <button type="button" onclick="openEditTransactionModal('${tx.id}')" class="px-2.5 py-1.5 bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 rounded-lg text-[11px] font-semibold flex items-center transition active:scale-95">
-                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 mr-1"></i> Edit
-                                </button>
-                                <button type="button" onclick="deleteTransaction('${tx.id}')" class="px-2.5 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-lg text-[11px] font-semibold flex items-center transition active:scale-95">
-                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 mr-1"></i> Hapus
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                    mobileContainer.appendChild(card);
-                }
-
-                // 2. RENDER BARIS TABEL UNTUK DESKTOP / LAPTOP
                 if (tbody) {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
-                        <td class="py-3 px-4 font-mono text-slate-500">${tx.date}</td>
+                        <td class="py-3 px-4 font-mono text-slate-500">${tx.date}${txTime ? ` <span class="text-[10px] text-slate-400">${txTime}</span>` : ''}</td>
                         <td class="py-3 px-4">
                             <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${badgeColor}">
                                 ${badgeText}
@@ -2958,21 +3484,27 @@
             const walletContainer = document.getElementById('walletsListContainer');
             walletContainer.innerHTML = '';
             if (appState.wallets.length === 0) {
-                walletContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">Belum ada akun dompet. Klik <b>+ Tambah Dompet</b> untuk mulai.</p>`;
+                walletContainer.innerHTML = `<p class="text-xs text-slate-400 text-center py-6 bg-slate-50 rounded-2xl border border-dashed border-slate-200">Belum ada akun dompet. Klik <b>+ Tambah</b> untuk mulai.</p>`;
             } else {
                 appState.wallets.forEach(w => {
+                    const brand = getWalletBrandVisual(w);
                     const div = document.createElement('div');
-                    div.className = "flex justify-between items-center gap-2 p-3.5 bg-slate-50/90 hover:bg-white border border-slate-200/80 hover:border-emerald-300 rounded-2xl transition shadow-sm";
+                    div.className = "flex justify-between items-center gap-2.5 p-3.5 bg-slate-50/90 hover:bg-white border border-slate-200/80 hover:border-emerald-300 rounded-2xl transition shadow-2xs";
                     div.innerHTML = `
-                        <div class="min-w-0 flex-1">
-                            <div class="flex items-center gap-1.5">
-                                <h5 class="font-bold text-slate-800 text-xs truncate">${w.name}</h5>
-                                <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-600 shrink-0">${w.type || 'CASH'}</span>
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            <div class="w-10 h-10 rounded-xl ${brand.bg} font-extrabold text-[11px] flex items-center justify-center shrink-0 shadow-xs">
+                                ${brand.code}
                             </div>
-                            <p class="text-xs font-bold text-emerald-600 mt-1">${formatRupiah(w.balance)}</p>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5">
+                                    <h5 class="font-bold text-slate-800 text-xs truncate">${w.name}</h5>
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded bg-slate-200/70 text-slate-600 shrink-0">${w.type || 'CASH'}</span>
+                                </div>
+                                <p class="text-xs font-extrabold text-emerald-600 mt-0.5">${formatRupiah(w.balance)}</p>
+                            </div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <button type="button" onclick="openEditWalletModal('${w.id}')" class="px-2.5 py-2 bg-white hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 rounded-xl text-[11px] font-semibold flex items-center gap-1 shadow-2xs transition active:scale-95" title="Edit Nama / Saldo Dompet">
+                            <button type="button" onclick="openEditWalletModal('${w.id}')" class="px-2.5 py-2 bg-white hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 border border-slate-200 rounded-xl text-[11px] font-semibold flex items-center gap-1 transition active:scale-95" title="Edit Nama / Saldo Dompet">
                                 <i data-lucide="edit-3" class="w-3.5 h-3.5"></i>
                                 <span>Edit</span>
                             </button>
@@ -2986,6 +3518,41 @@
             }
 
             renderMasterCategoriesList();
+            renderSmartRulesList();
+        }
+
+        function renderSmartRulesList() {
+            const container = document.getElementById('smartRulesListContainer');
+            const kwCatSel = document.getElementById('standaloneKeywordCatSelect');
+            if (kwCatSel) {
+                kwCatSel.innerHTML = appState.categories
+                    .filter(c => c.active !== false)
+                    .map(c => `<option value="${c.id}">${c.name} (${c.type === 'INCOME' ? 'Masuk' : 'Keluar'})</option>`)
+                    .join('');
+            }
+            if (!container) return;
+            container.innerHTML = '';
+
+            if (!appState.smartRules || appState.smartRules.length === 0) {
+                container.innerHTML = `<span class="text-[11px] text-slate-400 italic">Belum ada kata kunci kustom. Tambahkan agar kategori otomatis terisi saat mengetik catatan.</span>`;
+                return;
+            }
+
+            appState.smartRules.forEach(rule => {
+                const cat = appState.categories.find(c => c.id === rule.categoryId);
+                const chip = document.createElement('span');
+                chip.className = "inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-50 border border-emerald-200 text-[11px] text-slate-700";
+                chip.innerHTML = `
+                    <b class="text-emerald-800">"${rule.keywords}"</b>
+                    <span class="text-slate-400">→</span>
+                    <span class="font-semibold">${cat ? cat.name : rule.categoryId}</span>
+                    <button type="button" onclick="deleteSmartRuleItem('${rule.id}')" class="text-slate-400 hover:text-rose-600 ml-0.5" title="Hapus Kata Kunci">
+                        <i data-lucide="x" class="w-3 h-3"></i>
+                    </button>
+                `;
+                container.appendChild(chip);
+            });
+            lucide.createIcons();
         }
 
         function renderMasterCategoriesList() {
@@ -3005,8 +3572,10 @@
 
             filtered.forEach(c => {
                 const isInc = c.type === 'INCOME';
+                const iconObj = inferCategoryIcon(c);
+                const linkedRules = (appState.smartRules || []).filter(r => r.categoryId === c.id);
                 const div = document.createElement('div');
-                div.className = `p-3.5 border rounded-2xl transition ${c.active === false ? 'bg-slate-100 opacity-60 border-slate-200' : 'bg-white border-slate-200 shadow-sm hover:border-emerald-300'}`;
+                div.className = `p-3.5 border rounded-2xl transition ${c.active === false ? 'bg-slate-100 opacity-60 border-slate-200' : 'bg-white border-slate-200 shadow-2xs hover:border-emerald-300'}`;
 
                 let subHtml = '';
                 if (c.subcategories && c.subcategories.length > 0) {
@@ -3020,18 +3589,27 @@
                 }
 
                 div.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div class="flex items-center space-x-2">
-                            <div>
-                                <h5 class="font-bold text-slate-800 text-xs flex items-center">
-                                    ${c.name}
-                                    <span class="ml-2 text-[9px] font-bold px-1.5 py-0.5 rounded ${isInc ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${isInc ? 'PEMASUKAN' : 'PENGELUARAN'}</span>
+                    <div class="flex justify-between items-start gap-2">
+                        <div class="flex items-center space-x-2.5 min-w-0">
+                            <div class="w-9 h-9 rounded-xl ${isInc ? 'bg-emerald-50 border-emerald-200' : 'bg-slate-100 border-slate-200'} border flex items-center justify-center text-base shrink-0">
+                                ${iconObj.emoji}
+                            </div>
+                            <div class="min-w-0">
+                                <h5 class="font-bold text-slate-800 text-xs flex flex-wrap items-center gap-1.5">
+                                    <span>${c.name}</span>
+                                    <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${isInc ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}">${isInc ? 'PEMASUKAN' : 'PENGELUARAN'}</span>
                                 </h5>
+                                ${linkedRules.length > 0 ? `<p class="text-[10px] text-emerald-600 mt-0.5 truncate">Kata kunci: ${linkedRules.map(r => r.keywords).join(', ')}</p>` : ''}
                             </div>
                         </div>
-                        <div class="flex items-center space-x-1">
-                            <button type="button" onclick="openAddSubcategoryModal('${c.id}', '${c.name}')" class="text-[10px] bg-emerald-50 text-emerald-600 font-semibold px-2 py-1 rounded-lg hover:bg-emerald-100 transition">+ Subkategori</button>
-                            <button type="button" onclick="deleteCategory('${c.id}')" class="text-slate-400 hover:text-red-500 p-1"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        <div class="flex items-center space-x-1 shrink-0">
+                            <button type="button" onclick="openAddSubcategoryModal('${c.id}', '${c.name}')" class="text-[10px] bg-slate-100 text-slate-700 font-semibold px-2 py-1 rounded-lg hover:bg-slate-200 transition">+ Sub</button>
+                            <button type="button" onclick="openEditCategoryModal('${c.id}')" class="text-slate-500 hover:text-emerald-600 p-1.5 rounded-lg hover:bg-emerald-50 transition" title="Edit Kategori & Ikon">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button type="button" onclick="deleteCategory('${c.id}')" class="text-slate-400 hover:text-red-500 p-1.5 rounded-lg hover:bg-rose-50 transition" title="Hapus Kategori">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
                         </div>
                     </div>
                     <div class="mt-2.5 pt-2 border-t border-slate-100 flex flex-wrap gap-1.5 items-center">
@@ -3232,31 +3810,76 @@
            5. EVENT HANDLERS & MODAL EDIT/CATAT TRANSAKSI
            ==================================================================== */
 
+        function setTxTypePill(type) {
+            document.getElementById('txType').value = type;
+            ['INCOME', 'EXPENSE', 'TRANSFER'].forEach(t => {
+                const btn = document.getElementById('txTypeBtn' + t);
+                if (!btn) return;
+                if (t === type) {
+                    btn.className = "py-2.5 rounded-2xl bg-emerald-600 text-white text-xs font-bold shadow-sm transition";
+                } else {
+                    btn.className = "py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition";
+                }
+            });
+            handleTxTypeChange();
+        }
+
+        function syncCategoryIconGrid() {
+            const grid = document.getElementById('txCategoryIconGrid');
+            const sel = document.getElementById('txCategorySelect');
+            if (!grid || !sel) return;
+            const type = document.getElementById('txType').value;
+            const activeCatId = sel.value;
+            const filtered = appState.categories.filter(c => c.type === type && c.active !== false);
+
+            grid.innerHTML = filtered.map(c => {
+                const iconObj = inferCategoryIcon(c);
+                const selected = c.id === activeCatId;
+                return `
+                    <button type="button" onclick="selectCategoryFromGrid('${c.id}')" class="p-2.5 rounded-2xl border text-center flex flex-col items-center justify-center gap-1 transition active:scale-95 ${
+                        selected
+                            ? 'bg-teal-50 border-teal-500 ring-2 ring-teal-500/20 text-teal-800'
+                            : 'bg-slate-50/80 hover:bg-white border-slate-200 text-slate-700'
+                    }">
+                        <span class="text-xl leading-none">${iconObj.emoji}</span>
+                        <span class="text-[10px] font-bold leading-tight line-clamp-1 w-full">${c.name}</span>
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectCategoryFromGrid(catId) {
+            const sel = document.getElementById('txCategorySelect');
+            if (sel) {
+                sel.value = catId;
+                updateSubcategoryOptions();
+                syncCategoryIconGrid();
+            }
+        }
+
         function openAddTransactionModal() {
             document.getElementById('editTxId').value = '';
-            document.getElementById('transactionModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 mr-2 text-emerald-400"></i> Catat Transaksi Keuangan`;
+            document.getElementById('transactionModalTitle').innerHTML = `<i data-lucide="plus-circle" class="w-5 h-5 mr-2 text-white"></i> Catat Transaksi`;
             
             const btnSubmit = document.getElementById('btnSubmitTx');
             if (btnSubmit) {
                 btnSubmit.disabled = false;
                 btnSubmit.classList.remove('opacity-75', 'cursor-not-allowed');
-                let textSpan = document.getElementById('btnSubmitTxText');
-                if (!textSpan) {
-                    btnSubmit.innerHTML = `<i data-lucide="save" class="w-4 h-4 mr-1.5"></i><span id="btnSubmitTxText">Simpan Transaksi</span>`;
-                } else {
-                    textSpan.textContent = 'Simpan Transaksi';
-                }
+                btnSubmit.innerHTML = `<span id="btnSubmitTxText">Simpan</span>`;
             }
             
             renderWalletsSelect();
-            updateCategoryOptions();
-            document.getElementById('txDate').value = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            document.getElementById('txDate').value = now.toISOString().split('T')[0];
+            const timeEl = document.getElementById('txTime');
+            if (timeEl) timeEl.value = now.toTimeString().slice(0, 5);
             document.getElementById('txAmount').value = '';
             document.getElementById('txNote').value = '';
+            const kwInput = document.getElementById('customKeywordInput');
+            if (kwInput) kwInput.value = '';
             clearReceiptPhoto();
             document.getElementById('smartCategoryPanel').classList.add('hidden');
-            document.getElementById('txType').value = 'EXPENSE';
-            handleTxTypeChange();
+            setTxTypePill('EXPENSE');
             openModal('addTransactionModal');
             lucide.createIcons();
         }
@@ -3266,31 +3889,28 @@
             if (!tx) return;
 
             document.getElementById('editTxId').value = tx.id;
-            document.getElementById('transactionModalTitle').innerHTML = `<i data-lucide="edit-3" class="w-5 h-5 mr-2 text-emerald-400"></i> Edit Transaksi Keuangan`;
+            document.getElementById('transactionModalTitle').innerHTML = `<i data-lucide="edit-3" class="w-5 h-5 mr-2 text-white"></i> Edit Transaksi`;
             
             const btnSubmit = document.getElementById('btnSubmitTx');
             if (btnSubmit) {
                 btnSubmit.disabled = false;
                 btnSubmit.classList.remove('opacity-75', 'cursor-not-allowed');
-                let textSpan = document.getElementById('btnSubmitTxText');
-                if (!textSpan) {
-                    btnSubmit.innerHTML = `<i data-lucide="save" class="w-4 h-4 mr-1.5"></i><span id="btnSubmitTxText">Simpan Perubahan</span>`;
-                } else {
-                    textSpan.textContent = 'Simpan Perubahan';
-                }
+                btnSubmit.innerHTML = `<span id="btnSubmitTxText">Simpan Perubahan</span>`;
             }
 
             renderWalletsSelect();
-            document.getElementById('txType').value = tx.type;
-            handleTxTypeChange();
+            setTxTypePill(tx.type);
 
             document.getElementById('txAmount').value = Number(tx.amount).toLocaleString('id-ID');
             document.getElementById('txDate').value = tx.date;
+            const timeEl = document.getElementById('txTime');
+            if (timeEl) timeEl.value = extractTxTimeFromNote(tx.note) || new Date().toTimeString().slice(0, 5);
             document.getElementById('txWalletSelect').value = tx.walletId;
             if (tx.walletIdTo) document.getElementById('txWalletToSelect').value = tx.walletIdTo;
             
             updateCategoryOptions();
             if (tx.categoryId) document.getElementById('txCategorySelect').value = tx.categoryId;
+            syncCategoryIconGrid();
             updateSubcategoryOptions();
             if (tx.subcategory) document.getElementById('txSubcategorySelect').value = tx.subcategory;
             document.getElementById('txNote').value = tx.note || '';
@@ -3315,11 +3935,16 @@
             if (type === 'TRANSFER') {
                 destContainer.classList.remove('hidden');
                 catGrid.classList.add('hidden');
-                srcLabel.textContent = 'Dompet Sumber (Asal)';
+                srcLabel.textContent = 'Keluar dari akun';
+            } else if (type === 'INCOME') {
+                destContainer.classList.add('hidden');
+                catGrid.classList.remove('hidden');
+                srcLabel.textContent = 'Masuk ke akun';
+                updateCategoryOptions();
             } else {
                 destContainer.classList.add('hidden');
                 catGrid.classList.remove('hidden');
-                srcLabel.textContent = 'Dompet / Rekening';
+                srcLabel.textContent = 'Keluar dari akun';
                 updateCategoryOptions();
             }
         }
@@ -3370,6 +3995,7 @@
             });
 
             updateSubcategoryOptions();
+            syncCategoryIconGrid();
         }
 
         function updateSubcategoryOptions() {
@@ -3404,7 +4030,11 @@
             const categoryId = document.getElementById('txCategorySelect').value;
             const subcategory = document.getElementById('txSubcategorySelect').value;
             const date = document.getElementById('txDate').value;
-            const note = document.getElementById('txNote').value;
+            const txTimeVal = document.getElementById('txTime')?.value || '';
+            let note = document.getElementById('txNote').value.trim();
+            if (txTimeVal && !/\[\d{2}:\d{2}\]/.test(note)) {
+                note = note ? `[${txTimeVal}] ${note}` : `[${txTimeVal}]`;
+            }
             const receiptImg = document.getElementById('previewImgElement').getAttribute('src') || '';
 
             if (!amount || amount <= 0) {
@@ -3937,29 +4567,135 @@
                 });
         }
 
+        function renderCategoryIconPicker(selectedIconId = 'tag') {
+            const container = document.getElementById('categoryIconPickerGrid');
+            const hiddenInput = document.getElementById('addCatIconInput');
+            if (hiddenInput) hiddenInput.value = selectedIconId;
+            if (!container) return;
+
+            container.innerHTML = CATEGORY_ICON_PRESETS.map(p => `
+                <button type="button" onclick="renderCategoryIconPicker('${p.id}')" class="p-2 rounded-xl border text-center flex flex-col items-center justify-center gap-0.5 transition ${
+                    p.id === selectedIconId
+                        ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
+                        : 'bg-white border-slate-200 hover:border-emerald-300'
+                }">
+                    <span class="text-lg leading-none">${p.emoji}</span>
+                    <span class="text-[8px] font-semibold text-slate-500 truncate w-full">${p.label}</span>
+                </button>
+            `).join('');
+        }
+
+        function openAddCategoryModal() {
+            document.getElementById('editCategoryId').value = '';
+            document.getElementById('categoryModalTitle').textContent = 'Tambah Kategori Baru';
+            document.getElementById('addCatTypeInput').value = 'EXPENSE';
+            document.getElementById('addCatNameInput').value = '';
+            document.getElementById('addCatKeywordsInput').value = '';
+            renderCategoryIconPicker('utensils');
+            openModal('addCategoryModal');
+        }
+
+        function openEditCategoryModal(catId) {
+            const c = appState.categories.find(x => x.id === catId);
+            if (!c) return;
+            document.getElementById('editCategoryId').value = c.id;
+            document.getElementById('categoryModalTitle').textContent = 'Edit Kategori & Ikon';
+            document.getElementById('addCatTypeInput').value = c.type || 'EXPENSE';
+            document.getElementById('addCatNameInput').value = c.name || '';
+            document.getElementById('addCatKeywordsInput').value = '';
+            const iconObj = inferCategoryIcon(c);
+            renderCategoryIconPicker(iconObj.id);
+            openModal('addCategoryModal');
+        }
+
         function handleCreateCategory(e) {
             e.preventDefault();
-            const name = document.getElementById('addCatNameInput').value;
+            const editId = document.getElementById('editCategoryId').value;
+            const name = document.getElementById('addCatNameInput').value.trim();
             const type = document.getElementById('addCatTypeInput').value;
+            const iconId = document.getElementById('addCatIconInput').value || 'tag';
+            const keywords = document.getElementById('addCatKeywordsInput').value.trim();
 
             setButtonLoading('btnSubmitCategory', true);
             artosCall('saveArtosCategory', [{
-                id: '',
+                id: editId || '',
                 name: name,
                 type: type,
+                keywords: keywords,
                 budgetLimit: 0,
                 subcategories: []
             }])
-            .then(() => artosLoadData(false))
+            .then(res => {
+                const savedId = (res && res.id) || editId;
+                if (savedId) setCategoryIconLocal(savedId, iconId);
+                return artosLoadData(false);
+            })
             .then(() => {
-                setButtonLoading('btnSubmitCategory', false, 'Simpan');
+                setButtonLoading('btnSubmitCategory', false, 'Simpan Kategori');
                 closeModal('addCategoryModal');
-                showToast('Kategori berhasil disimpan!');
+                showToast(editId ? 'Kategori berhasil diperbarui!' : 'Kategori & kata kunci berhasil disimpan!');
             })
             .catch(err => {
-                setButtonLoading('btnSubmitCategory', false, 'Simpan');
+                setButtonLoading('btnSubmitCategory', false, 'Simpan Kategori');
                 showToast(err.message || 'Gagal menyimpan kategori.', 'error');
             });
+        }
+
+        function saveCustomKeywordRule() {
+            const kwInput = document.getElementById('customKeywordInput');
+            const noteVal = (document.getElementById('txNote')?.value || '').trim();
+            const keyword = (kwInput && kwInput.value.trim()) || noteVal;
+            const catId = document.getElementById('txCategorySelect')?.value;
+            const txType = document.getElementById('txType')?.value || 'EXPENSE';
+
+            if (!keyword) {
+                showToast('Ketik kata kunci atau catatan terlebih dahulu.', 'error');
+                return;
+            }
+            if (!catId || txType === 'TRANSFER') {
+                showToast('Pilih kategori terlebih dahulu.', 'error');
+                return;
+            }
+
+            artosCall('saveArtosSmartRule', [{
+                keywords: keyword,
+                categoryId: catId,
+                type: txType
+            }])
+            .then(() => artosLoadData(false))
+            .then(() => {
+                if (kwInput) kwInput.value = '';
+                showToast(`Kata kunci "${keyword}" disimpan! Otomatis dipakai lain waktu.`);
+            })
+            .catch(err => showToast(err.message || 'Gagal menyimpan kata kunci.', 'error'));
+        }
+
+        function handleCreateStandaloneKeyword(e) {
+            e.preventDefault();
+            const kw = document.getElementById('standaloneKeywordInput').value.trim();
+            const catId = document.getElementById('standaloneKeywordCatSelect').value;
+            const cat = appState.categories.find(c => c.id === catId);
+            if (!kw || !cat) return;
+
+            artosCall('saveArtosSmartRule', [{
+                keywords: kw,
+                categoryId: catId,
+                type: cat.type || 'EXPENSE'
+            }])
+            .then(() => artosLoadData(false))
+            .then(() => {
+                document.getElementById('standaloneKeywordInput').value = '';
+                closeModal('addKeywordModal');
+                showToast(`Kata kunci "${kw}" berhasil ditambahkan!`);
+            })
+            .catch(err => showToast(err.message || 'Gagal menyimpan kata kunci.', 'error'));
+        }
+
+        function deleteSmartRuleItem(ruleId) {
+            artosCall('deleteArtosSmartRule', [ruleId])
+                .then(() => artosLoadData(false))
+                .then(() => showToast('Kata kunci dihapus.'))
+                .catch(err => showToast(err.message || 'Gagal menghapus kata kunci.', 'error'));
         }
 
         async function deleteCategory(id) {
@@ -4049,8 +4785,10 @@
                             source.textContent = result.source || 'Smart AI';
                         }
                     } else {
-                        message.textContent = 'Catatan belum dikenali. Pilih kategori manual; istilah akan otomatis dipelajari setelah disimpan.';
-                        source.textContent = 'Manual';
+                        message.textContent = 'Kata kunci belum ada di kamus. Pilih kategori di atas lalu simpan kata kuncinya agar otomatis di waktu berikutnya:';
+                        source.textContent = 'Input Baru';
+                        const kwInput = document.getElementById('customKeywordInput');
+                        if (kwInput && !kwInput.value) kwInput.value = note;
                     }
                 })
                 .catch(() => {
