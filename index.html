@@ -1690,24 +1690,59 @@
         };
 
         const CATEGORY_ICON_PRESETS = [
+            // Makanan, Minuman & Rumah Tangga
             { id: 'utensils', emoji: '🍽️', label: 'Makan' },
-            { id: 'car', emoji: '🚆', label: 'Transport' },
-            { id: 'fuel', emoji: '⛽', label: 'Bensin' },
+            { id: 'coffee', emoji: '☕', label: 'Kopi/Jajan' },
             { id: 'shopping-bag', emoji: '🛒', label: 'Belanja' },
-            { id: 'package', emoji: '📦', label: 'Stok' },
+            { id: 'home', emoji: '🏠', label: 'Rumah/KPR' },
             { id: 'zap', emoji: '⚡', label: 'Listrik' },
             { id: 'droplet', emoji: '🚰', label: 'Air' },
             { id: 'wifi', emoji: '🌐', label: 'Internet' },
             { id: 'smartphone', emoji: '📱', label: 'Pulsa' },
-            { id: 'home', emoji: '🏠', label: 'Rumah/KPR' },
+            { id: 'wrench', emoji: '🔧', label: 'Perbaikan' },
+
+            // Transportasi & Perjalanan
+            { id: 'car', emoji: '🚆', label: 'Transport' },
+            { id: 'fuel', emoji: '⛽', label: 'Bensin' },
+            { id: 'motorcycle', emoji: '🏍️', label: 'Motor' },
+            { id: 'plane', emoji: '✈️', label: 'Liburan' },
+
+            // Kesehatan, Keluarga & Pendidikan
             { id: 'heart-pulse', emoji: '🩺', label: 'Kesehatan' },
+            { id: 'pill', emoji: '💊', label: 'Obat' },
+            { id: 'family', emoji: '👨‍👩‍👧‍👦', label: 'Keluarga' },
+            { id: 'baby', emoji: '👶', label: 'Anak/Bayi' },
             { id: 'graduation-cap', emoji: '🎓', label: 'Pendidikan' },
+            { id: 'book', emoji: '📚', label: 'Buku/Kursus' },
+
+            // Pekerjaan, Bisnis & Keuangan
+            { id: 'briefcase', emoji: '💼', label: 'Kerja/Karier' },
+            { id: 'building', emoji: '🏢', label: 'Usaha/Bisnis' },
+            { id: 'package', emoji: '📦', label: 'Stok/Modal' },
             { id: 'banknote', emoji: '💵', label: 'Gaji' },
             { id: 'trending-up', emoji: '📈', label: 'Penjualan' },
-            { id: 'gift', emoji: '🎁', label: 'Bonus' },
-            { id: 'credit-card', emoji: '💳', label: 'Cicilan' },
-            { id: 'coffee', emoji: '☕', label: 'Jajan/Kopi' },
-            { id: 'plane', emoji: '🕌', label: 'Ibadah/Libur' },
+            { id: 'credit-card', emoji: '💳', label: 'Keuangan/Cicil' },
+            { id: 'bank', emoji: '🏦', label: 'Bank/Admin' },
+            { id: 'tax', emoji: '🧾', label: 'Pajak/Admin' },
+            { id: 'shield', emoji: '🛡️', label: 'Asuransi' },
+
+            // Hiburan, Hobi & Gaya Hidup
+            { id: 'gamepad', emoji: '🎮', label: 'Hiburan/Hobi' },
+            { id: 'movie', emoji: '🎬', label: 'Bioskop' },
+            { id: 'music', emoji: '🎵', label: 'Musik' },
+            { id: 'sport', emoji: '🏋️', label: 'Olahraga' },
+            { id: 'shirt', emoji: '👕', label: 'Pakaian' },
+            { id: 'beauty', emoji: '💄', label: 'Perawatan' },
+
+            // Sosial, Keagamaan, Darurat & Masa Depan
+            { id: 'mosque', emoji: '🕌', label: 'Keagamaan' },
+            { id: 'charity', emoji: '🤲', label: 'Zakat/Sedekah' },
+            { id: 'gift', emoji: '🎁', label: 'Sosial/Kado' },
+            { id: 'handshake', emoji: '🤝', label: 'Kemasyarakatan' },
+            { id: 'emergency', emoji: '🚨', label: 'Darurat' },
+            { id: 'future', emoji: '🌱', label: 'Masa Depan' },
+            { id: 'gold', emoji: '🪙', label: 'Investasi/Emas' },
+            { id: 'elderly', emoji: '👴', label: 'Hari Tua' },
             { id: 'tag', emoji: '🏷️', label: 'Lainnya' }
         ];
 
@@ -1717,10 +1752,13 @@
             { regex: /\b(pln|token|listrik|tagihan listrik)\b/i, catMatch: /listrik|tagihan|utilitas/i, iconId: 'zap' },
             { regex: /\b(pdam|air|galon|aqua|le minerale)\b/i, catMatch: /air|tagihan|utilitas/i, iconId: 'droplet' },
             { regex: /\b(wifi|indihome|biznet|myrepublic|internet|kuota|paket data|pulsa|telkomsel|xl|indosat|tri)\b/i, catMatch: /internet|pulsa|komunikasi|tagihan/i, iconId: 'wifi' },
-            { regex: /\b(kpr|angsuran|cicilan|paylater|shopeepay|spaylater|kredivo|akulaku|kartu kredit)\b/i, catMatch: /cicil|utang|rumah|kpr/i, iconId: 'credit-card' },
+            { regex: /\b(kpr|angsuran|cicilan|paylater|shopeepay|spaylater|kredivo|akulaku|kartu kredit)\b/i, catMatch: /cicil|utang|rumah|kpr|keuangan|kewajiban/i, iconId: 'credit-card' },
             { regex: /\b(indomaret|alfamart|alfamidi|supermarket|belanja|sabun|beras|sembako|tokopedia|shopee|lazada)\b/i, catMatch: /belanja|kebutuhan|rumah tangga/i, iconId: 'shopping-bag' },
             { regex: /\b(obat|apotek|dokter|klinik|rumah sakit|rs|bpjs|vitamin)\b/i, catMatch: /sehat|medis/i, iconId: 'heart-pulse' },
-            { regex: /\b(gaji|payroll|honor|upah|tunjangan|thr|bonus|cashback)\b/i, catMatch: /gaji|bonus|pendapatan|pemasukan/i, iconId: 'banknote' }
+            { regex: /\b(gaji|payroll|honor|upah|tunjangan|thr|bonus|cashback)\b/i, catMatch: /gaji|bonus|pendapatan|pemasukan/i, iconId: 'banknote' },
+            { regex: /\b(zakat|infaq|infak|sedekah|qurban|masjid|mushola|amal)\b/i, catMatch: /keagamaan|zakat|sedekah/i, iconId: 'mosque' },
+            { regex: /\b(pajak|pbb|stnk|sim|notaris|materai|administrasi)\b/i, catMatch: /pajak|administrasi/i, iconId: 'tax' },
+            { regex: /\b(kondangan|sumbangan|arisan|iuran|rt|rw|kado)\b/i, catMatch: /sosial|kemasyarakatan/i, iconId: 'gift' }
         ];
 
         function getCategoryMetaMap() {
@@ -1733,26 +1771,40 @@
         }
         function matchIconPresetByName(name) {
             const n = String(name || '').toLowerCase();
+
+            // 1. Kategori Kustom Master Data Anda
+            if (/pekerjaan|karier|karir|kantor|kerja/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'briefcase');
+            if (/hiburan|hobi|bioskop|game|rekreasi/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'gamepad');
+            if (/keagamaan|zakat|infaq|infak|sedekah|qurban|ibadah/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'mosque');
+            if (/pajak|administrasi|notaris|pbb|stnk|legal/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'tax');
+            if (/masa depan|hari tua|pensiun|investasi|tabungan|emas/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'future');
+            if (/sosial|kemasyarakatan|kondangan|kado|arisan|donasi/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'gift');
+            if (/keuangan|kewajiban|cicil|utang|kartu|paylater|pinjam|bank/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'credit-card');
+            if (/darurat|tak terduga|musibah|bencana|cadangan/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'emergency');
+
+            // 2. Kategori Umum Lainnya
             if (/bensin|bbm|pertamina|solar/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'fuel');
             if (/kopi|jajan|snack|cemilan|cafe/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'coffee');
             if (/makan|minum|kuliner|resto|dapur|konsumsi/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'utensils');
             if (/transport|krl|kereta|bus|ojek|parkir|tol|kendaraan/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'car');
             if (/belanja|mart|sembako|kebutuhan/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'shopping-bag');
-            if (/stok|dagang|kulakan|usaha|modal/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'package');
+            if (/stok|dagang|kulakan|usaha|modal|bisnis/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'building');
             if (/listrik|pln|token/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'zap');
             if (/air|pdam/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'droplet');
             if (/internet|wifi/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'wifi');
             if (/pulsa|data|paket|telepon|hp/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'smartphone');
             if (/rumah|sewa|kpr|kos|kontrakan/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'home');
             if (/sehat|bpjs|obat|dokter|medis/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'heart-pulse');
+            if (/keluarga|anak|bayi/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'family');
             if (/didik|sekolah|kuliah|kursus|buku/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'graduation-cap');
-            if (/gaji|upah|payroll/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'banknote');
-            if (/jual|omzet|bisnis|freelance|jasa/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'trending-up');
+            if (/gaji|upah|payroll|pendapatan/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'banknote');
+            if (/jual|omzet|freelance|jasa/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'trending-up');
             if (/bonus|hadiah|cashback|thr/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'gift');
-            if (/cicil|utang|kartu|paylater|pinjam/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'credit-card');
             if (/haji|umroh|libur|wisata|staycation/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'plane');
             return CATEGORY_ICON_PRESETS.find(p => p.id === 'tag');
         }
+    
+       
         function inferCategoryIcon(cat) {
             const saved = getCategoryMetaMap()[cat.id];
             if (saved) {
