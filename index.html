@@ -1865,11 +1865,14 @@
         async function uploadImageToSupabaseBucket(bucketName, dataUrl, filePrefix) {
             if (!dataUrl) return '';
             if (dataUrl.startsWith('http://') || dataUrl.startsWith('https://')) return dataUrl;
+            const isPng = dataUrl.startsWith('data:image/png');
             const res = await fetch(dataUrl);
             const blob = await res.blob();
-            const safeName = `${filePrefix}_${Date.now()}.jpg`;
+            const ext = isPng ? 'png' : 'jpg';
+            const mimeType = isPng ? 'image/png' : 'image/jpeg';
+            const safeName = `${filePrefix}_${Date.now()}.${ext}`;
             const { error } = await sb.storage.from(bucketName).upload(safeName, blob, {
-                contentType: 'image/jpeg',
+                contentType: mimeType,
                 upsert: true
             });
             if (error) throw new Error('Gagal upload gambar ke Supabase: ' + error.message);
@@ -4144,6 +4147,8 @@ function toggleGoalCardOverlay(cardEl) {
 
         function handleWalletLogoUpload(input) {
             if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const isPng = file.type === 'image/png';
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
@@ -4151,15 +4156,16 @@ function toggleGoalCardOverlay(cardEl) {
                     const canvas = document.createElement('canvas');
                     canvas.width = 160; canvas.height = 160;
                     const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, 160, 160);
                     const minDim = Math.min(img.width, img.height);
                     ctx.drawImage(img, (img.width - minDim) / 2, (img.height - minDim) / 2, minDim, minDim, 0, 0, 160, 160);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+                    const dataUrl = isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
                     document.getElementById('walletCustomImageBase64').value = dataUrl;
                     updateWalletIconPreview();
                 };
                 img.src = e.target.result;
             };
-            reader.readAsDataURL(input.files[0]);
+            reader.readAsDataURL(file);
             input.value = '';
         }
 
