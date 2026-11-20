@@ -1845,10 +1845,10 @@
         }
 
         function getWalletBrandVisual(w) {
-            const meta = getWalletMetaMap()[w.id] || {};
-            const customImg = w.logoUrl || meta.customImage || '';
+            const meta = (w && w.id) ? (getWalletMetaMap()[w.id] || {}) : {};
+            const customImg = (w && w.logoUrl) || meta.customImage || '';
             const presetKey = meta.presetKey || 'AUTO';
-            const accountNumber = w.accountNumber || meta.accountNumber || '';
+            const accountNumber = (w && w.accountNumber) || meta.accountNumber || '';
 
             if (customImg) {
                 return { code: '', bg: 'bg-white', customImg, accountNumber };
@@ -1859,8 +1859,8 @@
                 if (p) return { code: p.code, bg: p.bg, customImg: '', accountNumber };
             }
 
-            const name = String(w.name || '').toLowerCase();
-            const type = String(w.type || 'CASH').toUpperCase();
+            const name = String((w && w.name) || '').toLowerCase();
+            const type = String((w && w.type) || 'CASH').toUpperCase();
             if (name.includes('bri') || name.includes('brimo')) return { code: 'BRI', bg: 'bg-blue-700 text-white', customImg: '', accountNumber };
             if (name.includes('bca')) return { code: 'BCA', bg: 'bg-sky-700 text-white', customImg: '', accountNumber };
             if (name.includes('mandiri') || name.includes('livin')) return { code: 'MDR', bg: 'bg-amber-500 text-slate-950', customImg: '', accountNumber };
@@ -1873,11 +1873,31 @@
             if (name.includes('dana')) return { code: 'DANA', bg: 'bg-sky-500 text-white', customImg: '', accountNumber };
             if (name.includes('gopay') || name.includes('gojek')) return { code: 'GPY', bg: 'bg-emerald-500 text-white', customImg: '', accountNumber };
             if (name.includes('ovo')) return { code: 'OVO', bg: 'bg-purple-700 text-white', customImg: '', accountNumber };
-            if (name.includes('shopee')) return { code: 'SPY', bg: 'bg-orange-600 text-white', customImg: '', accountNumber };
+            if (name.includes('shopee') || name.includes('shopeepay') || name.includes('shopepay') || name.includes('spay')) return { code: 'SPY', bg: 'bg-orange-600 text-white', customImg: '', accountNumber };
+            if (name.includes('kredivo')) return { code: 'KRD', bg: 'bg-orange-500 text-white', customImg: '', accountNumber };
+            if (name.includes('akulaku')) return { code: 'AKL', bg: 'bg-rose-600 text-white', customImg: '', accountNumber };
+            if (name.includes('home credit') || name.includes('hci')) return { code: 'HCI', bg: 'bg-red-600 text-white', customImg: '', accountNumber };
+            if (name.includes('adira')) return { code: 'ADR', bg: 'bg-amber-400 text-slate-900', customImg: '', accountNumber };
+            if (name.includes('fif')) return { code: 'FIF', bg: 'bg-blue-800 text-white', customImg: '', accountNumber };
             if (name.includes('linkaja')) return { code: 'LNK', bg: 'bg-red-600 text-white', customImg: '', accountNumber };
             if (type === 'BANK') return { code: 'BANK', bg: 'bg-indigo-600 text-white', customImg: '', accountNumber };
             if (type === 'EWALLET') return { code: 'EWLT', bg: 'bg-cyan-600 text-white', customImg: '', accountNumber };
+            if (type === 'BILL') return { code: '📄', bg: 'bg-slate-700 text-white', customImg: '', accountNumber };
             return { code: '💵', bg: 'bg-emerald-600 text-white', customImg: '', accountNumber };
+        }
+
+        function getDebtBrandVisual(d) {
+            const personLower = String((d && d.person) || '').toLowerCase();
+            // Cek apakah ada logo custom yang pernah diupload di Dompet & Rekening dengan nama bank/e-wallet yang sama
+            const matchedWallet = (appState.wallets || []).find(w => {
+                const wName = String(w.name || '').toLowerCase().trim();
+                return wName.length >= 3 && personLower.includes(wName);
+            });
+            if (matchedWallet) {
+                const wBrand = getWalletBrandVisual(matchedWallet);
+                if (wBrand.customImg) return wBrand;
+            }
+            return getWalletBrandVisual({ id: '', name: (d && d.person) || '', type: 'BILL', logoUrl: '' });
         }
 
         function renderWalletAvatarHtml(brand, sizeClass = 'w-10 h-10', textClass = 'text-[11px]') {
@@ -3862,9 +3882,12 @@ function closeAllGoalOverlays() {
                         const payAmt = debt.monthlyInstallment > 0 ? debt.monthlyInstallment : debt.amount;
                         return `
                             <div class="p-2.5 rounded-xl border ${isUtang ? 'bg-rose-50/70 border-rose-200' : 'bg-blue-50/70 border-blue-200'} flex items-center justify-between gap-2">
-                                <div class="min-w-0">
-                                    <span class="text-xs font-bold text-slate-800 block truncate">${debt.person}</span>
-                                    <span class="text-[10px] text-slate-500 block">Tgl ${dateStr.split('-')[2]} · ${formatRupiah(payAmt)}</span>
+                                <div class="flex items-center gap-2 min-w-0">
+                                    ${renderWalletAvatarHtml(getDebtBrandVisual(debt), 'w-7 h-7', 'text-[9px]')}
+                                    <div class="min-w-0">
+                                        <span class="text-xs font-bold text-slate-800 block truncate">${debt.person}</span>
+                                        <span class="text-[10px] text-slate-500 block">Tgl ${dateStr.split('-')[2]} · ${formatRupiah(payAmt)}</span>
+                                    </div>
                                 </div>
                                 <button type="button" onclick="openPayInstallmentModal('${debt.id}')" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg shrink-0 transition">
                                     Bayar
@@ -3892,6 +3915,7 @@ function closeAllGoalOverlays() {
             appState.debts.forEach(d => {
                 const isUtang = d.type === 'UTANG';
                 const isLunas = d.status === 'LUNAS';
+                const brand = getDebtBrandVisual(d);
                 const tenor = Number(d.tenorMonths) || 0;
                 const paid = Number(d.paidInstallments) || 0;
                 const monthly = Number(d.monthlyInstallment) || 0;
@@ -3902,14 +3926,17 @@ function closeAllGoalOverlays() {
                     const card = document.createElement('div');
                     card.className = "bg-white border border-slate-200/90 rounded-2xl p-4 shadow-sm space-y-3";
                     card.innerHTML = `
-                        <div class="flex items-start justify-between gap-2">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-1.5 mb-1">
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span>
-                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isLunas ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${d.status}</span>
+                        <div class="flex items-start justify-between gap-2.5">
+                            <div class="flex items-start gap-3 min-w-0 flex-1">
+                                ${renderWalletAvatarHtml(brand, 'w-10 h-10', 'text-[10px]')}
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex flex-wrap items-center gap-1.5 mb-1">
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span>
+                                        <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isLunas ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${d.status}</span>
+                                    </div>
+                                    <h4 class="font-bold text-slate-800 text-sm leading-snug">${d.person}</h4>
+                                    ${d.notes ? `<p class="text-[11px] text-slate-400 mt-0.5">${d.notes}</p>` : ''}
                                 </div>
-                                <h4 class="font-bold text-slate-800 text-sm leading-snug">${d.person}</h4>
-                                ${d.notes ? `<p class="text-[11px] text-slate-400 mt-0.5">${d.notes}</p>` : ''}
                             </div>
                             <div class="text-right shrink-0">
                                 <span class="font-extrabold text-slate-900 text-sm block">${formatRupiah(remainingBalance)}</span>
@@ -3947,8 +3974,13 @@ function closeAllGoalOverlays() {
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td class="py-3 px-4 font-semibold text-slate-800">
-                            ${d.person}
-                            ${d.notes ? `<p class="text-[10px] text-slate-400 font-normal">${d.notes}</p>` : ''}
+                            <div class="flex items-center gap-2.5">
+                                ${renderWalletAvatarHtml(brand, 'w-8 h-8', 'text-[9px]')}
+                                <div>
+                                    <span>${d.person}</span>
+                                    ${d.notes ? `<p class="text-[10px] text-slate-400 font-normal">${d.notes}</p>` : ''}
+                                </div>
+                            </div>
                         </td>
                         <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span></td>
                         <td class="py-3 px-4 font-mono text-slate-500">
@@ -3993,14 +4025,21 @@ function closeAllGoalOverlays() {
             }
             appState.debts.forEach(d => {
                 const isUtang = d.type === 'UTANG';
+                const brand = getDebtBrandVisual(d);
                 const card = document.createElement('div');
-                card.className = "p-4 rounded-2xl border border-slate-200 bg-slate-50/70 flex flex-col justify-between space-y-2.5";
+                card.className = "p-4 rounded-2xl border border-slate-200 bg-slate-50/70 hover:border-emerald-300 transition flex flex-col justify-between space-y-2.5";
                 card.innerHTML = `
-                    <div class="flex items-start justify-between gap-2">
-                        <div class="min-w-0">
-                            <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span>
-                            <h5 class="font-bold text-slate-800 text-xs mt-1 truncate">${d.person}</h5>
-                            <p class="text-[10px] text-slate-500 mt-0.5">Jatuh tempo: ${d.paymentDay ? 'Tgl ' + d.paymentDay + '/bln' : (d.dueDate || '-')}</p>
+                    <div class="flex items-start justify-between gap-2.5">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                            ${renderWalletAvatarHtml(brand, 'w-11 h-11', 'text-[11px]')}
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span>
+                                    ${d.status === 'LUNAS' ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700">LUNAS</span>` : ''}
+                                </div>
+                                <h5 class="font-bold text-slate-800 text-xs mt-1 truncate">${d.person}</h5>
+                                <p class="text-[10px] text-slate-500 mt-0.5">Jatuh tempo: ${d.paymentDay ? 'Tgl ' + d.paymentDay + '/bln' : (d.dueDate || '-')}</p>
+                            </div>
                         </div>
                         <div class="text-right shrink-0">
                             <span class="text-xs font-extrabold text-slate-900 block">${formatRupiah(d.amount)}</span>
