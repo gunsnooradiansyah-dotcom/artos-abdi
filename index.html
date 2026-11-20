@@ -1781,6 +1781,9 @@
             if (/sosial|kemasyarakatan|kondangan|kado|arisan|donasi/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'gift');
             if (/keuangan|kewajiban|cicil|utang|kartu|paylater|pinjam|bank/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'credit-card');
             if (/darurat|tak terduga|musibah|bencana|cadangan/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'emergency');
+			if (/tempat tinggal|rumah|sewa|kpr|kos|kontrakan|hunian/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'home');
+            if (/kebersihan|perawatan|skincare|salon|grooming|barber|sabun/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'beauty');
+            if (/pakaian|aksesori|baju|celana|sepatu|sandal|fashion|laundri/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'shirt');
 
             // 2. Kategori Umum Lainnya
             if (/bensin|bbm|pertamina|solar/.test(n)) return CATEGORY_ICON_PRESETS.find(p => p.id === 'fuel');
