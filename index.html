@@ -1207,12 +1207,12 @@
 
                 <!-- Catatan + status kategori otomatis (tinggi tetap, tidak melompat) -->
                 <div>
-                    <input type="text" id="txNote" autocomplete="off" placeholder="Catatan, misal: KRL Tenjo / Bensin / Makan ayam" class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 outline-none font-medium">
+                    <input type="text" id="txNote" autocomplete="off" placeholder="" class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 outline-none font-medium">
 
                     <div id="smartCategoryPanel" class="h-7 mt-1 px-1 flex items-center justify-between gap-2">
                         <div id="smartStatusView" class="flex items-center gap-1.5 min-w-0 flex-1 text-[11px] font-semibold text-slate-400">
-                            <span id="smartDetectedEmoji" class="text-sm leading-none">✨</span>
-                            <span id="smartCategoryMessage" class="truncate">Ketik catatan, kategori dipilih otomatis</span>
+                            <span id="smartDetectedEmoji" class="text-sm leading-none"></span>
+                            <span id="smartCategoryMessage" class="truncate"></span>
                         </div>
                         <button type="button" id="btnKeywordToggle" onclick="toggleKeywordEditor(true)" class="hidden shrink-0 text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">+ Kata kunci</button>
                         <div id="customKeywordSaveBox" class="hidden flex flex-1 items-center gap-1">
@@ -4851,7 +4851,7 @@ function closeAllGoalOverlays() {
             const box = document.getElementById('customKeywordSaveBox');
             if (!view || !emojiEl || !msgEl) return;
 
-            let emoji = '✨', text = 'Ketik catatan, kategori dipilih otomatis', color = 'text-slate-400', showBtn = false;
+            let emoji = '', text = '', color = 'text-slate-400', showBtn = false;
             if ((state === 'found' || state === 'manual') && cat) {
                 const subText = sub || (state === 'manual' ? (document.getElementById('txSubcategorySelect')?.value || '') : '');
                 emoji = inferCategoryIcon(cat).emoji;
