@@ -85,6 +85,58 @@
             transform: translateY(-2px);
             box-shadow: 0 12px 24px -10px rgba(15, 23, 42, 0.1);
         }
+
+        .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* ===== LOGIN DI HP: FULL LAYAR ALA APLIKASI BANK (desktop/tablet tidak berubah) ===== */
+        @media (max-width: 639px) {
+            #authScreen { padding: 0; align-items: stretch; }
+            #authScreen .auth-card {
+                background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none;
+                border: 0; box-shadow: none; border-radius: 0; max-width: none; width: 100%; margin: 0;
+                min-height: 100vh; min-height: 100dvh;
+                padding: calc(env(safe-area-inset-top, 0px) + 28px) 24px calc(env(safe-area-inset-bottom, 0px) + 22px);
+                display: flex; flex-direction: column;
+            }
+            #authScreen #authLogoBox { width: 72px; height: 72px; background: rgba(16, 185, 129, 0.16); }
+            #authScreen #authTitle { color: #ffffff; font-size: 1.6rem; }
+            #authScreen #authSubtitle { color: #94a3b8; margin-bottom: 18px; }
+            #authScreen #authTabs { background: rgba(255, 255, 255, 0.08); margin-bottom: 18px; }
+            #authScreen #authTabs button:not(.bg-white) { color: #cbd5e1; }
+
+            #authScreen #pinAuthContainer:not(.hidden) { display: flex; flex-direction: column; flex: 1; }
+            #authScreen #pinPromptText { color: #e2e8f0; font-size: 0.85rem; margin-top: 6px; }
+            #authScreen #directPinWrap, #authScreen #pinSubmitWrap { display: none; }
+            #authScreen #pinDots { margin: 14px 0 0; }
+            #authScreen .pin-dot { width: 16px; height: 16px; background: transparent; border-color: rgba(255, 255, 255, 0.55); box-shadow: none; }
+            #authScreen .pin-dot.bg-emerald-500 { background: #34d399; border-color: #34d399; }
+            #authScreen #authErrorMessage { color: #fda4af; text-align: center; margin: 12px 0 0; }
+
+            #authScreen #pinKeypad { width: 100%; max-width: 320px; margin: auto auto 0; gap: 14px 22px; }
+            #authScreen #pinKeypad button {
+                height: 68px; border-radius: 9999px; background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.10); color: #ffffff; font-size: 1.6rem; font-weight: 500; box-shadow: none;
+            }
+            #authScreen #pinKeypad button:active { background: rgba(255, 255, 255, 0.24); transform: scale(0.94); }
+            #authScreen #pinKeypad button:nth-child(10) { background: transparent; border-color: transparent; color: #fda4af; font-size: 1.05rem; font-weight: 700; }
+            #authScreen #pinKeypad button:nth-child(12) { background: transparent; border-color: transparent; color: #e2e8f0; }
+            #authScreen #pinKeypad svg { width: 26px; height: 26px; }
+
+            #authScreen #faceAuthContainer:not(.hidden) { display: flex; flex-direction: column; flex: 1; align-items: center; justify-content: center; gap: 18px; }
+            #authScreen #faceAuthContainer > .relative { width: 240px; height: 240px; }
+            #authScreen #faceAuthStatusText { color: #e2e8f0; font-size: 0.85rem; }
+            #authScreen #faceAuthContainer > div.space-y-2 { width: 100%; max-width: 320px; }
+            #authScreen #btnVerifyFace { padding: 14px; border-radius: 9999px; font-size: 0.9rem; }
+            #authScreen #faceAuthContainer > button { color: #6ee7b7; }
+        }
+        @media (max-width: 639px) and (max-height: 700px) {
+            #authScreen #pinKeypad { gap: 10px 20px; }
+            #authScreen #pinKeypad button { height: 56px; font-size: 1.35rem; }
+            #authScreen #authSubtitle { display: none; }
+            #authScreen #authLogoBox { width: 56px; height: 56px; }
+            #authScreen .auth-card { padding-top: calc(env(safe-area-inset-top, 0px) + 16px); }
+        }
     </style>
 </head>
 <body class="h-full text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white flex flex-col">
@@ -158,15 +210,15 @@
 
       <!-- 1. AUTH / LOGIN SCREEN (PIN 6-DIGIT & SCAN WAJAH FACE ID) -->
         <div id="authScreen" class="fixed inset-0 bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 flex items-center justify-center p-4 z-40 overflow-y-auto">
-            <div class="glass-card w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl border border-slate-700/50 text-center relative overflow-hidden my-auto">
-                <div class="w-16 h-16 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
+            <div id="authCard" class="auth-card glass-card w-full max-w-md p-6 sm:p-8 rounded-3xl shadow-2xl border border-slate-700/50 text-center relative overflow-hidden my-auto">
+                <div id="authLogoBox" class="w-16 h-16 bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-inner">
                     <i data-lucide="wallet" class="w-8 h-8"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-slate-800 tracking-tight">Artos Abdi</h1>
-                <p class="text-xs text-slate-500 mb-6">Manajemen Keuangan Pribadi Cerdas & Aman</p>
+                <h1 id="authTitle" class="text-2xl font-bold text-slate-800 tracking-tight">Artos Abdi</h1>
+                <p id="authSubtitle" class="text-xs text-slate-500 mb-6">Manajemen Keuangan Pribadi Cerdas & Aman</p>
 
                 <!-- Auth Mode Tabs -->
-                <div class="flex bg-slate-100 p-1 rounded-xl mb-6 text-xs font-semibold">
+                <div id="authTabs" class="flex bg-slate-100 p-1 rounded-xl mb-6 text-xs font-semibold">
                     <button type="button" id="pinTabBtn" onclick="switchAuthMode('pin')" class="flex-1 py-2 rounded-lg bg-white shadow-sm text-emerald-600 transition font-semibold">PIN 6-Digit</button>
                     <button type="button" id="faceTabBtn" onclick="switchAuthMode('face')" class="flex-1 py-2 rounded-lg text-slate-500 hover:text-slate-800 transition font-semibold flex items-center justify-center">
                         <i data-lucide="scan-face" class="w-4 h-4 mr-1"></i> Scan Wajah
@@ -175,9 +227,9 @@
 
                 <!-- PIN INPUT CONTAINER -->
                 <div id="pinAuthContainer" class="space-y-4">
-                    <p class="text-xs text-slate-600 font-medium">Masukkan PIN Keamanan Anda</p>
+                    <p id="pinPromptText" class="text-xs text-slate-600 font-medium">Masukkan PIN Keamanan Anda</p>
 
-                    <div class="relative max-w-[260px] mx-auto mb-2">
+                    <div id="directPinWrap" class="relative max-w-[260px] mx-auto mb-2">
                         <input type="password" id="directPinInput" maxlength="6" placeholder="Ketik 6 digit PIN..." oninput="handleDirectPinInput(this.value)" class="w-full text-center text-sm border border-slate-300 rounded-xl py-2 px-3 pr-9 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono tracking-widest bg-slate-50">
                         <button type="button" onclick="togglePinVisibility()" class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600" title="Tampilkan/Sembunyikan PIN">
                             <i data-lucide="eye" id="pinToggleIcon" class="w-4 h-4"></i>
@@ -193,7 +245,7 @@
                         <div class="w-4 h-4 rounded-full border-2 border-slate-300 bg-white shadow-sm pin-dot"></div>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-3 max-w-[260px] mx-auto">
+                    <div id="pinKeypad" class="grid grid-cols-3 gap-3 max-w-[260px] mx-auto">
                         <button type="button" onclick="pressPin('1')" class="h-12 rounded-2xl bg-slate-50 border border-slate-200 text-lg font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 active:scale-95 transition shadow-sm">1</button>
                         <button type="button" onclick="pressPin('2')" class="h-12 rounded-2xl bg-slate-50 border border-slate-200 text-lg font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 active:scale-95 transition shadow-sm">2</button>
                         <button type="button" onclick="pressPin('3')" class="h-12 rounded-2xl bg-slate-50 border border-slate-200 text-lg font-semibold text-slate-700 hover:bg-emerald-50 hover:text-emerald-600 active:scale-95 transition shadow-sm">3</button>
@@ -210,7 +262,7 @@
                         </button>
                     </div>
 
-                    <div class="pt-3">
+                    <div id="pinSubmitWrap" class="pt-3">
                         <button type="button" id="btnLoginSubmit" onclick="verifyPin()" class="w-full max-w-[260px] py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-md transition flex items-center justify-center mx-auto space-x-1.5">
                             <i data-lucide="log-in" class="w-4 h-4 mr-1.5"></i> Masuk Aplikasi
                         </button>
@@ -1120,19 +1172,19 @@
         </div>
     </div>
 
-    <!-- MODAL CATAT / EDIT TRANSAKSI -->
-    <div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 z-50 hidden">
-        <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
-            <div class="p-4 bg-teal-600 text-white flex justify-between items-center shrink-0">
-                <h3 class="font-bold text-base flex items-center" id="transactionModalTitle">
-                    <i data-lucide="plus-circle" class="w-5 h-5 mr-2 text-white"></i> Catat Transaksi
+    <!-- MODAL CATAT / EDIT TRANSAKSI (RINGKAS, MUAT SATU LAYAR TANPA SCROLL) -->
+    <div id="addTransactionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-end sm:items-center justify-center sm:p-4 z-50 hidden">
+        <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl max-h-[100dvh] overflow-y-auto no-scrollbar flex flex-col" style="padding-bottom: env(safe-area-inset-bottom);">
+            <div class="px-4 py-3 bg-teal-600 text-white flex justify-between items-center shrink-0">
+                <h3 class="font-bold text-sm flex items-center" id="transactionModalTitle">
+                    <i data-lucide="plus-circle" class="w-4 h-4 mr-2 text-white"></i> Catat Transaksi
                 </h3>
                 <button type="button" onclick="closeModal('addTransactionModal')" class="text-white/80 hover:text-white p-1">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
-            <form onsubmit="handleSaveTransaction(event)" class="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
+
+            <form onsubmit="handleSaveTransaction(event)" class="p-3 sm:p-4 space-y-2.5">
                 <input type="hidden" id="editTxId">
                 <select id="txType" onchange="handleTxTypeChange()" class="hidden">
                     <option value="EXPENSE">Pengeluaran (Keluar)</option>
@@ -1140,109 +1192,77 @@
                     <option value="TRANSFER">Transfer Antar Dompet</option>
                 </select>
 
-                <div class="grid grid-cols-3 gap-2">
-                    <button type="button" id="txTypeBtnINCOME" onclick="setTxTypePill('INCOME')" class="py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Pemasukan</button>
-                    <button type="button" id="txTypeBtnEXPENSE" onclick="setTxTypePill('EXPENSE')" class="py-2.5 rounded-2xl bg-emerald-600 text-white text-xs font-bold shadow-sm transition">Pengeluaran</button>
-                    <button type="button" id="txTypeBtnTRANSFER" onclick="setTxTypePill('TRANSFER')" class="py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Transfer</button>
+                <!-- Tipe transaksi -->
+                <div class="grid grid-cols-3 gap-1.5">
+                    <button type="button" id="txTypeBtnINCOME" onclick="setTxTypePill('INCOME')" class="py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Pemasukan</button>
+                    <button type="button" id="txTypeBtnEXPENSE" onclick="setTxTypePill('EXPENSE')" class="py-2 rounded-xl bg-rose-600 text-white text-xs font-bold shadow-sm transition">Pengeluaran</button>
+                    <button type="button" id="txTypeBtnTRANSFER" onclick="setTxTypePill('TRANSFER')" class="py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">Transfer</button>
                 </div>
 
-                <div class="relative border-2 border-teal-500 rounded-2xl px-3.5 py-2.5 bg-teal-50/20">
-                    <span class="text-[10px] font-bold text-teal-600 uppercase tracking-wider block">Nominal</span>
-                    <div class="flex items-center mt-0.5">
-                        <span class="text-base font-bold text-slate-500 mr-2">Rp</span>
-                        <input type="text" inputmode="numeric" id="txAmount" required placeholder="0" oninput="formatCurrencyInput(this)" class="w-full text-xl font-extrabold text-slate-900 bg-transparent outline-none">
-                    </div>
+                <!-- Nominal -->
+                <div class="border-2 border-teal-500 rounded-2xl px-3 py-1.5 bg-teal-50/20 flex items-center">
+                    <span class="text-sm font-bold text-slate-500 mr-2">Rp</span>
+                    <input type="text" inputmode="numeric" id="txAmount" required placeholder="0" oninput="formatCurrencyInput(this)" class="w-full text-xl font-extrabold text-slate-900 bg-transparent outline-none">
                 </div>
 
-                <div class="space-y-2">
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-600 flex items-center justify-between">
-                            <span>Catatan / Nama Merchant / Keterangan</span>
-                            <span class="text-[10px] text-emerald-600 font-semibold">Kategori & ikon otomatis</span>
-                        </label>
-                        <input type="text" id="txNote" placeholder="misal: KRL Tenjo / Beli Bensin / Makan Ayam / Token PLN" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-medium">
-                    </div>
-
-                    <div id="smartCategoryPanel" class="hidden rounded-2xl border border-emerald-200 bg-emerald-50/80 p-3 space-y-2">
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-1.5 text-emerald-700 text-[11px] font-bold">
-                                <span id="smartDetectedEmoji" class="text-base">✨</span>
-                                <span id="smartCategoryMessage">Kategori otomatis dipilih</span>
-                            </div>
-                            <span id="smartCategorySource" class="text-[10px] text-emerald-700 bg-white px-2 py-0.5 rounded-full border border-emerald-200 font-semibold">Auto-Detect</span>
-                        </div>
-                        <div id="customKeywordSaveBox" class="pt-1.5 border-t border-emerald-200/70 flex flex-col sm:flex-row gap-1.5 items-stretch sm:items-center">
-                            <input type="text" id="customKeywordInput" placeholder="Simpan kata kunci baru..." class="flex-1 text-[11px] bg-white border border-emerald-200 rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-emerald-500">
-                            <button type="button" onclick="saveCustomKeywordRule()" class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg transition whitespace-nowrap">
-                                + Simpan Kata Kunci
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="walletSelectionGrid">
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-600" id="txSourceWalletLabel">Keluar dari akun</label>
-                        <select id="txWalletSelect" required class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-800 bg-slate-50"></select>
-                    </div>
-                    <div id="destWalletContainer" class="hidden">
-                        <label class="text-[11px] font-semibold text-slate-600">Masuk ke akun tujuan</label>
-                        <select id="txWalletToSelect" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-800 bg-slate-50"></select>
-                    </div>
-                </div>
-
-                <div id="categorySelectionGrid" class="space-y-2">
-                    <div class="flex items-center justify-between">
-                        <label class="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                            <span>Kategori & Ikon</span>
-                            <span id="txActiveCategoryBadge" class="text-[10px] font-bold bg-teal-50 text-teal-700 border border-teal-200 px-2 py-0.5 rounded-full">Otomatis</span>
-                        </label>
-                        <button type="button" onclick="closeModal('addTransactionModal'); openSettingsTab('categories');" class="text-xs font-bold text-teal-600 hover:text-teal-700">Atur</button>
-                    </div>
-                    <select id="txCategorySelect" onchange="updateSubcategoryOptions(); syncCategoryIconGrid();" class="hidden"></select>
-                    <div id="txCategoryIconGrid" class="grid grid-cols-4 gap-2 max-h-44 overflow-y-auto pr-0.5"></div>
-
-                    <div id="txSubcategoryWrapper">
-                        <label class="text-[11px] font-semibold text-slate-600">Subkategori (Opsional)</label>
-                        <select id="txSubcategorySelect" class="w-full text-xs border border-slate-200 rounded-xl p-2 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-medium text-slate-700 bg-slate-50"></select>
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Tanggal</label>
-                        <input type="date" id="txDate" required class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-700">
-                    </div>
-                    <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Jam Transaksi</label>
-                        <input type="time" id="txTime" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-700">
-                    </div>
-                </div>
-
-                <!-- FOTO STRUK (UPLOAD KE SUPABASE STORAGE 'receipts') -->
+                <!-- Catatan + status kategori otomatis (tinggi tetap, tidak melompat) -->
                 <div>
-                    <label class="text-[11px] font-semibold text-slate-600 mb-1 block">Foto Struk Transaksi (Simpan ke Supabase)</label>
-                    <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="openDirectCameraModal()" class="py-2.5 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-xl flex items-center justify-center transition border border-emerald-200">
-                            <i data-lucide="camera" class="w-4 h-4 mr-1.5"></i> Kamera Langsung
-                        </button>
-                        <label class="py-2.5 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 text-xs font-semibold rounded-xl flex items-center justify-center transition border border-slate-200 cursor-pointer">
-                            <i data-lucide="upload" class="w-4 h-4 mr-1.5 text-emerald-600"></i> Pilih File Foto
-                            <input type="file" id="txReceiptFile" accept="image/*" onchange="handleFileReceiptUpload(this)" class="hidden">
-                        </label>
-                    </div>
-                    <div id="txReceiptPreview" class="mt-2 hidden flex items-center justify-between bg-slate-50 p-2 rounded-xl border border-slate-200">
-                        <div class="flex items-center space-x-2">
-                            <img id="previewImgElement" src="" class="w-10 h-10 object-cover rounded-lg border border-slate-200">
-                            <span class="text-[11px] text-emerald-600 font-medium">Siap diunggah ke Supabase</span>
+                    <input type="text" id="txNote" autocomplete="off" placeholder="Catatan, misal: KRL Tenjo / Bensin / Makan ayam" class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 outline-none font-medium">
+
+                    <div id="smartCategoryPanel" class="h-7 mt-1 px-1 flex items-center justify-between gap-2">
+                        <div id="smartStatusView" class="flex items-center gap-1.5 min-w-0 flex-1 text-[11px] font-semibold text-slate-400">
+                            <span id="smartDetectedEmoji" class="text-sm leading-none">✨</span>
+                            <span id="smartCategoryMessage" class="truncate">Ketik catatan, kategori dipilih otomatis</span>
                         </div>
-                        <button type="button" onclick="clearReceiptPhoto()" class="text-xs text-red-500 hover:text-red-700 px-2 py-1 font-semibold">Hapus</button>
+                        <button type="button" id="btnKeywordToggle" onclick="toggleKeywordEditor(true)" class="hidden shrink-0 text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">+ Kata kunci</button>
+                        <div id="customKeywordSaveBox" class="hidden flex flex-1 items-center gap-1">
+                            <input type="text" id="customKeywordInput" autocomplete="off" onkeydown="if(event.key==='Enter'){event.preventDefault();saveCustomKeywordRule();}" placeholder="Kata kunci..." class="flex-1 min-w-0 text-[11px] bg-white border border-teal-300 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-teal-500">
+                            <button type="button" onclick="saveCustomKeywordRule()" class="px-2 py-1 bg-teal-600 hover:bg-teal-700 text-white text-[10px] font-bold rounded-lg transition">Simpan</button>
+                            <button type="button" onclick="toggleKeywordEditor(false)" class="px-1.5 py-1 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="pt-2 flex space-x-3 shrink-0">
+                <!-- Kategori: 2 baris, geser ke samping (tinggi tetap) -->
+                <div id="categorySelectionGrid">
+                    <select id="txCategorySelect" onchange="updateSubcategoryOptions(); syncCategoryIconGrid();" class="hidden"></select>
+                    <div id="txCategoryIconGrid" class="relative grid grid-rows-2 grid-flow-col auto-cols-[68px] gap-1.5 overflow-x-auto no-scrollbar"></div>
+                </div>
+
+                <!-- Dompet (+ Subkategori / Akun tujuan) -->
+                <div id="walletSelectionGrid" class="flex gap-2">
+                    <div class="flex-1 min-w-0">
+                        <label class="text-[10px] font-semibold text-slate-500" id="txSourceWalletLabel">Keluar dari akun</label>
+                        <select id="txWalletSelect" required class="w-full text-xs border border-slate-200 rounded-xl px-2.5 py-2 mt-0.5 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-800 bg-slate-50"></select>
+                    </div>
+                    <div id="destWalletContainer" class="hidden flex-1 min-w-0">
+                        <label class="text-[10px] font-semibold text-slate-500">Masuk ke akun tujuan</label>
+                        <select id="txWalletToSelect" class="w-full text-xs border border-slate-200 rounded-xl px-2.5 py-2 mt-0.5 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-800 bg-slate-50"></select>
+                    </div>
+                    <div id="txSubcategoryWrapper" class="flex-1 min-w-0">
+                        <label class="text-[10px] font-semibold text-slate-500">Subkategori</label>
+                        <select id="txSubcategorySelect" onchange="txCategoryLock = 'manual';" class="w-full text-xs border border-slate-200 rounded-xl px-2.5 py-2 mt-0.5 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-700 bg-slate-50"></select>
+                    </div>
+                </div>
+
+                <!-- Tanggal, jam & struk dalam satu baris -->
+                <div class="flex items-center gap-1.5">
+                    <input type="date" id="txDate" required title="Tanggal" class="flex-1 min-w-0 text-xs border border-slate-200 rounded-xl px-2.5 py-2.5 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-700">
+                    <input type="time" id="txTime" title="Jam transaksi" class="w-[92px] text-xs border border-slate-200 rounded-xl px-2 py-2.5 focus:ring-2 focus:ring-teal-500 outline-none font-semibold text-slate-700">
+                    <div id="txReceiptPreview" class="hidden flex items-center gap-1 bg-slate-50 pl-1 pr-1.5 py-1 rounded-xl border border-slate-200 shrink-0">
+                        <img id="previewImgElement" src="" class="w-8 h-8 object-cover rounded-lg border border-slate-200">
+                        <button type="button" onclick="clearReceiptPhoto()" class="text-xs text-red-500 hover:text-red-700 font-bold px-0.5" title="Hapus foto struk">✕</button>
+                    </div>
+                    <label title="Lampirkan foto struk (kamera / galeri)" class="shrink-0 w-12 h-[42px] bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl flex flex-col items-center justify-center transition border border-emerald-200 cursor-pointer">
+                        <i data-lucide="camera" class="w-4 h-4"></i>
+                        <span class="text-[9px] font-bold leading-none mt-0.5">Struk</span>
+                        <input type="file" id="txReceiptFile" accept="image/*" onchange="handleFileReceiptUpload(this)" class="hidden">
+                    </label>
+                </div>
+
+                <div class="pt-0.5 flex gap-2">
                     <button type="button" onclick="closeModal('addTransactionModal')" class="flex-1 py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold hover:bg-slate-50">Batal</button>
-                    <button type="submit" id="btnSubmitTx" class="flex-1 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 shadow-md flex items-center justify-center">
+                    <button type="submit" id="btnSubmitTx" class="flex-[1.6] py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-700 shadow-md flex items-center justify-center">
                         <span id="btnSubmitTxText">Simpan Transaksi</span>
                     </button>
                 </div>
@@ -1776,20 +1796,185 @@
             { id: 'tag', emoji: '🏷️', label: 'Lainnya' }
         ];
 
-        const BUILTIN_KEYWORD_PATTERNS = [
-            { regex: /\b(krl|kereta|stasiun|bus|transjakarta|tj|mrt|lrt|gojek|grab|maxim|ojek|parkir|tol|brizzi|emoney|flazz|tapcash|bensin|pertamina|pertalite|pertamax|shell)\b/i, catMatch: /transport|kendaraan|perjalanan/i, iconId: 'car' },
-            { regex: /\b(makan|minum|nasi|ayam|bebek|bubur|jamu|burger|sempol|jajan|kopi|teh|warung|resto|warteg|bakso|mie|soto|sate|sarapan|gorengan)\b/i, catMatch: /makan|minum|konsumsi|kuliner/i, iconId: 'utensils' },
-            { regex: /\b(pln|token|listrik|tagihan listrik)\b/i, catMatch: /listrik|tagihan|utilitas/i, iconId: 'zap' },
-            { regex: /\b(pdam|air|galon|aqua|le minerale)\b/i, catMatch: /air|tagihan|utilitas/i, iconId: 'droplet' },
-            { regex: /\b(wifi|indihome|biznet|myrepublic|internet|kuota|paket data|pulsa|telkomsel|xl|indosat|tri)\b/i, catMatch: /internet|pulsa|komunikasi|tagihan/i, iconId: 'wifi' },
-            { regex: /\b(kpr|angsuran|cicilan|paylater|shopeepay|spaylater|kredivo|akulaku|kartu kredit)\b/i, catMatch: /cicil|utang|rumah|kpr|keuangan|kewajiban/i, iconId: 'credit-card' },
-            { regex: /\b(indomaret|alfamart|alfamidi|supermarket|belanja|sabun|beras|sembako|tokopedia|shopee|lazada)\b/i, catMatch: /belanja|kebutuhan|rumah tangga/i, iconId: 'shopping-bag' },
-            { regex: /\b(obat|apotek|dokter|klinik|rumah sakit|rs|bpjs|vitamin)\b/i, catMatch: /sehat|medis/i, iconId: 'heart-pulse' },
-            { regex: /\b(gaji|payroll|honor|upah|tunjangan|thr|bonus|cashback)\b/i, catMatch: /gaji|bonus|pendapatan|pemasukan/i, iconId: 'banknote' },
-            { regex: /\b(zakat|infaq|infak|sedekah|qurban|masjid|mushola|amal)\b/i, catMatch: /keagamaan|zakat|sedekah/i, iconId: 'mosque' },
-            { regex: /\b(pajak|pbb|stnk|sim|notaris|materai|administrasi)\b/i, catMatch: /pajak|administrasi/i, iconId: 'tax' },
-            { regex: /\b(kondangan|sumbangan|arisan|iuran|rt|rw|kado)\b/i, catMatch: /sosial|kemasyarakatan/i, iconId: 'gift' }
+        /* ====================================================================
+           MESIN KATEGORI OTOMATIS (DETERMINISTIK)
+           Catatan yang sama SELALU menghasilkan kategori yang sama.
+           Prioritas: 1) Kata kunci buatan sendiri  2) Riwayat catatan yang persis sama
+                      3) Nama subkategori  4) Kamus kata bawaan  5) Nama kategori
+           Di tiap tingkat: frasa terpanjang menang, lalu yang muncul paling awal di catatan.
+           Pencocokan per KATA UTUH (bukan potongan huruf), jadi "air" tidak nyangkut di "kairo".
+           ==================================================================== */
+        // t = tipe | w = kata/frasa pemicu | c = pola nama kategori (urut prioritas) | s = pola nama subkategori
+        const SMART_CONCEPTS = [
+            // ---------- PENGELUARAN ----------
+            { t: 'EXPENSE', w: ['bensin', 'bbm', 'pertalite', 'pertamax', 'pertamina', 'shell', 'solar', 'spbu', 'isi bensin'], c: [/transport|kendaraan|perjalanan/i], s: /bensin|bbm|bahan bakar/i },
+            { t: 'EXPENSE', w: ['krl', 'kereta', 'stasiun', 'commuter', 'commuterline', 'mrt', 'lrt', 'transjakarta', 'tj', 'busway', 'angkot', 'bus', 'brizzi', 'emoney', 'flazz', 'tapcash', 'tiket kereta', 'tiket bus'], c: [/transport|kendaraan|perjalanan/i], s: /krl|kereta|angkutan|tiket/i },
+            { t: 'EXPENSE', w: ['gojek', 'gocar', 'goride', 'grab', 'grabcar', 'grabbike', 'maxim', 'indriver', 'ojek', 'ojol', 'taksi', 'taxi', 'travel'], c: [/transport|kendaraan|perjalanan/i], s: /ojek|online|ojol|taksi/i },
+            { t: 'EXPENSE', w: ['parkir', 'tol', 'etoll'], c: [/transport|kendaraan|perjalanan/i], s: /parkir|tol/i },
+            { t: 'EXPENSE', w: ['servis', 'service', 'oli', 'ganti oli', 'ban', 'tambal ban', 'bengkel', 'aki', 'sparepart', 'spare part', 'cuci motor', 'cuci mobil'], c: [/kendaraan|transport/i], s: /servis|service|perawatan|bengkel|perbaikan/i },
+            { t: 'EXPENSE', w: ['makan', 'makanan', 'nasi', 'ayam', 'bebek', 'bubur', 'burger', 'sempol', 'bakso', 'mie', 'soto', 'sate', 'sarapan', 'gorengan', 'warteg', 'warung', 'resto', 'restoran', 'padang', 'gofood', 'grabfood', 'shopeefood', 'pecel', 'lele', 'geprek', 'seblak', 'siomay', 'batagor', 'cilok', 'pizza', 'kfc', 'mcd', 'mcdonald', 'makan siang', 'makan malam'], c: [/makan|minum|konsumsi|kuliner|dapur/i], s: /makan|warung|resto|delivery/i },
+            { t: 'EXPENSE', w: ['kopi', 'teh', 'minum', 'minuman', 'jajan', 'jamu', 'boba', 'jus', 'cemilan', 'snack', 'cafe', 'kafe', 'starbucks', 'es teh', 'es jeruk'], c: [/makan|minum|konsumsi|kuliner|dapur/i], s: /kopi|jajan|minum|cemil|snack|cafe/i },
+            { t: 'EXPENSE', w: ['indomaret', 'alfamart', 'alfamidi', 'supermarket', 'belanja', 'sabun', 'beras', 'sembako', 'minyak', 'gula', 'telur', 'sayur', 'sayuran', 'buah', 'pasar', 'tokopedia', 'shopee', 'lazada', 'tiktok shop'], c: [/belanja|kebutuhan|rumah tangga|dapur/i], s: /belanja|sembako|bulanan|harian|dapur/i },
+            { t: 'EXPENSE', w: ['pln', 'token', 'listrik', 'token pln', 'pln mobile', 'tagihan listrik'], c: [/listrik|utilitas|tagihan|tempat tinggal|rumah|hunian/i], s: /listrik|pln|token/i },
+            { t: 'EXPENSE', w: ['pdam', 'air', 'galon', 'aqua', 'isi galon', 'le minerale', 'air minum', 'tagihan air'], c: [/tempat tinggal|rumah|utilitas|tagihan|hunian|\bair\b/i], s: /\bair\b|pdam|galon/i },
+            { t: 'EXPENSE', w: ['wifi', 'indihome', 'biznet', 'myrepublic', 'internet', 'kuota', 'paket data', 'telkomsel', 'xl', 'indosat', 'axis', 'smartfren', 'first media'], c: [/internet|komunikasi|tagihan|utilitas|tempat tinggal|rumah/i], s: /internet|wifi|kuota|data|pulsa|komunikasi/i },
+            { t: 'EXPENSE', w: ['pulsa', 'isi pulsa', 'voucher pulsa'], c: [/pulsa|komunikasi|internet|tagihan|utilitas/i], s: /pulsa|kuota|komunikasi/i },
+            { t: 'EXPENSE', w: ['gas', 'elpiji', 'lpg', 'isi gas'], c: [/tempat tinggal|rumah|dapur|kebutuhan|utilitas|hunian/i], s: /gas|lpg|dapur/i },
+            { t: 'EXPENSE', w: ['sewa', 'kontrakan', 'kos', 'kost', 'bayar kos', 'renovasi', 'tukang', 'perbaikan rumah', 'genteng', 'cat tembok', 'ipl', 'iuran lingkungan'], c: [/tempat tinggal|rumah|sewa|hunian|kos/i], s: /sewa|kos|kontrak|renovasi|perbaikan|perawatan|ipl|iuran/i },
+            { t: 'EXPENSE', w: ['kpr', 'angsuran', 'cicilan', 'paylater', 'spaylater', 'shopeepay later', 'kredivo', 'akulaku', 'kartu kredit', 'cc', 'pinjaman', 'pinjol', 'utang', 'hutang', 'bayar utang', 'bayar hutang', 'home credit'], c: [/keuangan|kewajiban|cicil|utang|kpr/i, /tempat tinggal|rumah/i], s: /cicil|utang|cc|kartu|kpr|angsuran|pinjam/i },
+            { t: 'EXPENSE', w: ['obat', 'apotek', 'vitamin', 'suplemen'], c: [/sehat|medis|kesehatan/i], s: /obat|apotek|vitamin/i },
+            { t: 'EXPENSE', w: ['dokter', 'klinik', 'rumah sakit', 'rs', 'berobat', 'periksa', 'lab', 'dokter gigi', 'rawat inap', 'rawat jalan'], c: [/sehat|medis|kesehatan/i], s: /dokter|klinik|rumah sakit|periksa|rawat/i },
+            { t: 'EXPENSE', w: ['bpjs', 'asuransi kesehatan', 'premi kesehatan'], c: [/sehat|medis|kesehatan/i, /asuransi|keuangan|kewajiban/i], s: /bpjs|asuransi|premi/i },
+            { t: 'EXPENSE', w: ['asuransi', 'premi', 'prudential', 'allianz', 'axa', 'manulife', 'bpjs ketenagakerjaan'], c: [/asuransi|keuangan|kewajiban|masa depan/i], s: /asuransi|premi/i },
+            { t: 'EXPENSE', w: ['zakat', 'zakat fitrah', 'zakat mal', 'fitrah'], c: [/keagamaan|zakat|ibadah|sedekah/i], s: /zakat/i },
+            { t: 'EXPENSE', w: ['infaq', 'infak', 'sedekah', 'masjid', 'mushola', 'musholla', 'amal', 'wakaf', 'kotak amal', 'donasi'], c: [/keagamaan|sedekah|ibadah|sosial/i], s: /infaq|infak|sedekah|amal|masjid|wakaf|donasi/i },
+            { t: 'EXPENSE', w: ['qurban', 'kurban', 'aqiqah', 'akikah', 'haji', 'umroh', 'umrah'], c: [/keagamaan|ibadah|masa depan/i], s: /qurban|kurban|aqiqah|haji|umroh/i },
+            { t: 'EXPENSE', w: ['pajak', 'pbb', 'stnk', 'sim', 'notaris', 'materai', 'administrasi', 'biaya admin', 'admin bank', 'bea', 'kir', 'samsat'], c: [/pajak|administrasi|admin|legal/i], s: /pajak|pbb|stnk|sim|admin|notaris|materai|samsat/i },
+            { t: 'EXPENSE', w: ['kondangan', 'sumbangan', 'arisan', 'iuran', 'rt', 'rw', 'kado', 'hajatan', 'sumbang', 'takziah', 'nikahan', 'pernikahan', 'ronda', 'kas rt', 'hadiah', 'traktir'], c: [/sosial|kemasyarakatan/i], s: /kondangan|arisan|iuran|sumbangan|kado|hajatan/i },
+            { t: 'EXPENSE', w: ['spp', 'sekolah', 'kuliah', 'ukt', 'kursus', 'les', 'buku', 'seragam', 'alat tulis', 'atk', 'bimbel', 'uang sekolah', 'pendaftaran', 'uang pangkal', 'ujian'], c: [/didik|sekolah|kuliah|belajar/i], s: /spp|buku|kursus|les|seragam|sekolah|kuliah/i },
+            { t: 'EXPENSE', w: ['popok', 'pampers', 'diapers', 'susu', 'susu formula', 'mainan', 'anak', 'bayi', 'baby', 'istri', 'suami', 'orang tua', 'ortu', 'ibu', 'bapak', 'mertua', 'uang saku', 'jajan anak'], c: [/keluarga|anak|bayi/i], s: /anak|bayi|susu|popok|orang tua|ortu|uang saku/i },
+            { t: 'EXPENSE', w: ['bioskop', 'nonton', 'netflix', 'spotify', 'youtube premium', 'disney', 'vidio', 'game', 'steam', 'topup game', 'top up game', 'diamond', 'mobile legends', 'rekreasi', 'karaoke', 'hobi', 'konser', 'tiket konser', 'langganan', 'playstation', 'ps5'], c: [/hiburan|hobi|rekreasi|gaya hidup/i], s: /bioskop|langganan|game|hobi|konser|streaming/i },
+            { t: 'EXPENSE', w: ['liburan', 'wisata', 'staycation', 'hotel', 'penginapan', 'tiket pesawat', 'pesawat', 'traveloka', 'villa'], c: [/liburan|wisata|hiburan|rekreasi/i], s: /liburan|wisata|hotel|penginapan|tiket/i },
+            { t: 'EXPENSE', w: ['baju', 'celana', 'sepatu', 'sandal', 'kaos', 'jaket', 'kemeja', 'topi', 'tas', 'fashion', 'jam tangan', 'kerudung', 'hijab', 'gamis', 'dress', 'rok', 'kaos kaki'], c: [/pakaian|aksesori|fashion/i], s: /baju|celana|sepatu|sandal|tas|jaket|aksesori/i },
+            { t: 'EXPENSE', w: ['laundry', 'laundri', 'cuci baju', 'cuci setrika', 'setrika'], c: [/pakaian|aksesori|fashion|kebersihan|perawatan/i], s: /laundry|laundri|cuci|setrika/i },
+            { t: 'EXPENSE', w: ['skincare', 'salon', 'barber', 'barbershop', 'potong rambut', 'cukur', 'shampoo', 'sampo', 'pasta gigi', 'odol', 'parfum', 'lulur', 'facial', 'spa', 'pijat', 'sabun mandi', 'deodorant', 'sikat gigi'], c: [/kebersihan|perawatan|beauty|diri/i], s: /skincare|salon|barber|potong|sabun|perawatan/i },
+            { t: 'EXPENSE', w: ['darurat', 'musibah', 'kecelakaan', 'tak terduga', 'tidak terduga', 'bencana', 'rusak mendadak'], c: [/darurat|tak terduga|tidak terduga|musibah/i], s: null },
+            { t: 'EXPENSE', w: ['tabungan', 'menabung', 'nabung', 'investasi', 'emas', 'reksadana', 'reksa dana', 'saham', 'deposito', 'dplk', 'pensiun', 'antam', 'crypto', 'kripto', 'obligasi', 'sbn'], c: [/masa depan|hari tua|investasi|tabungan|pensiun/i], s: /emas|reksa|saham|tabungan|pensiun|investasi|deposito/i },
+            { t: 'EXPENSE', w: ['stok', 'kulakan', 'modal', 'dagangan', 'barang dagang', 'supplier', 'packaging', 'kemasan', 'operasional usaha', 'gaji karyawan', 'sewa toko', 'bahan baku'], c: [/usaha|stok|dagang|modal|bisnis|operasional/i], s: /stok|kulakan|modal|bahan|operasional|karyawan/i },
+            { t: 'EXPENSE', w: ['kantor', 'meeting', 'rapat', 'perjalanan dinas', 'dinas', 'print', 'fotocopy', 'fotokopi', 'laptop', 'software', 'hosting', 'domain', 'alat kerja', 'coworking'], c: [/pekerjaan|karier|karir|kantor|kerja/i], s: /kantor|dinas|alat|software|print|hosting|perlengkapan/i },
+
+            // ---------- PEMASUKAN ----------
+            { t: 'INCOME', w: ['gaji', 'gajian', 'payroll', 'upah', 'honor', 'honorarium', 'tunjangan', 'salary'], c: [/gaji|pekerjaan|pendapatan|pemasukan|karier|karir/i], s: /gaji|tunjangan|honor/i },
+            { t: 'INCOME', w: ['bonus', 'thr', 'cashback', 'hadiah', 'reward', 'insentif', 'angpao', 'ang pao', 'undian'], c: [/bonus|hadiah|pendapatan|pemasukan|lain/i], s: /bonus|thr|cashback|hadiah|insentif/i },
+            { t: 'INCOME', w: ['jual', 'jualan', 'penjualan', 'omzet', 'untung', 'keuntungan', 'laba', 'dagang', 'jasa', 'freelance', 'proyek', 'project', 'komisi', 'fee', 'order', 'pesanan', 'orderan'], c: [/usaha|bisnis|penjualan|freelance|jasa|pendapatan|pemasukan/i], s: /penjualan|usaha|freelance|jasa|komisi|proyek/i },
+            { t: 'INCOME', w: ['dividen', 'bunga', 'deposito', 'hasil investasi', 'profit', 'cuan', 'royalti'], c: [/investasi|bunga|pendapatan|pemasukan/i], s: /dividen|bunga|investasi|deposito/i },
+            { t: 'INCOME', w: ['kembalian', 'pengembalian', 'refund', 'balik modal', 'pelunasan', 'piutang', 'dibayar'], c: [/lain|pemasukan|pendapatan|piutang/i], s: null }
         ];
+
+        // Nama subkategori yang terlalu umum tidak boleh dipakai untuk menebak
+        const SMART_GENERIC_NAMES = ['umum', 'lainnya', 'lain', 'lain lain', 'other', 'dll', 'tambahan', 'biaya', 'rutin'];
+
+        function normalizeNoteText(s) {
+            return String(s || '').toLowerCase()
+                .replace(/\[[^\]]*\]/g, ' ')          // buang penanda jam seperti [13:42] / [Auto ...]
+                .replace(/[^a-z0-9\s]/g, ' ')
+                .replace(/\s+/g, ' ').trim()
+                .split(' ')
+                .map(t => (t.length > 5 && t.endsWith('nya')) ? t.slice(0, -3) : t)   // "bensinnya" -> "bensin"
+                .join(' ');
+        }
+
+        // Posisi frasa (kata utuh) di dalam catatan, -1 jika tidak ada
+        function findPhrasePos(normNote, phrase) {
+            const p = normalizeNoteText(phrase);
+            if (!p) return -1;
+            return (' ' + normNote + ' ').indexOf(' ' + p + ' ');
+        }
+
+        function resolveSmartConcept(k, cats) {
+            const ordered = [...cats].sort((a, b) => (String(a.name).length - String(b.name).length) || String(a.name).localeCompare(String(b.name)));
+            if (k.s) {
+                for (const rx of k.c) {
+                    for (const c of ordered.filter(x => rx.test(x.name))) {
+                        const sub = (c.subcategories || []).find(s => k.s.test(s));
+                        if (sub) return { cat: c, sub };
+                    }
+                }
+            }
+            for (const rx of k.c) {
+                const c = ordered.find(x => rx.test(x.name));
+                if (c) return { cat: c, sub: '' };
+            }
+            return null;
+        }
+
+        async function detectCategoryForNote(note, txType) {
+            const norm = normalizeNoteText(note);
+            if (norm.length < 2) return { ok: true, found: false };
+            const cats = (appState.categories || []).filter(c => c.type === txType && c.active !== false);
+            if (cats.length === 0) return { ok: true, found: false };
+
+            const cands = [];
+            let seq = 0;
+            const add = (c) => cands.push({ ...c, seq: seq++ });
+
+            // Tingkat 5 - kata kunci buatan sendiri (selalu menang)
+            (appState.smartRules || []).forEach(r => {
+                if (r.type && r.type !== txType) return;
+                const cat = cats.find(c => c.id === r.categoryId);
+                if (!cat) return;
+                String(r.keywords || '').split(',').forEach(k => {
+                    const kn = normalizeNoteText(k);
+                    const pos = kn ? findPhrasePos(norm, kn) : -1;
+                    if (pos >= 0) add({ tier: 5, len: kn.length, pos, catId: cat.id, sub: r.subcategory || '', source: 'Kata Kunci Anda' });
+                });
+            });
+
+            // Tingkat 4 - riwayat dengan catatan yang PERSIS sama (kategori yang paling sering dipakai)
+            if (!cands.length) {
+                try {
+                    const { data } = await sb.from('smart_learning')
+                        .select('normalized_note, category_id, subcategory')
+                        .eq('transaction_type', txType)
+                        .ilike('normalized_note', norm + '%')
+                        .limit(80);
+                    const tally = {};
+                    (data || []).forEach(row => {
+                        if (normalizeNoteText(row.normalized_note) !== norm) return;
+                        if (!cats.some(c => c.id === row.category_id)) return;
+                        const key = row.category_id + '||' + (row.subcategory || '');
+                        tally[key] = (tally[key] || 0) + 1;
+                    });
+                    const best = Object.entries(tally).sort((a, b) => (b[1] - a[1]) || a[0].localeCompare(b[0]))[0];
+                    if (best) {
+                        const [cid, sub] = best[0].split('||');
+                        add({ tier: 4, len: norm.length, pos: 0, catId: cid, sub, source: 'Riwayat Anda' });
+                    }
+                } catch (e) { /* offline: lanjut ke tingkat berikutnya */ }
+            }
+
+            // Tingkat 3 - nama subkategori | Tingkat 1 - nama kategori
+            cats.forEach(c => {
+                (c.subcategories || []).forEach(s => {
+                    const sn = normalizeNoteText(s);
+                    const pos = (sn.length >= 3 && !SMART_GENERIC_NAMES.includes(sn)) ? findPhrasePos(norm, sn) : -1;
+                    if (pos >= 0) add({ tier: 3, len: sn.length, pos, catId: c.id, sub: s, source: 'Nama Subkategori' });
+                });
+                String(c.name || '').split(/&|\/|,|\bdan\b/i).forEach(part => {
+                    const pn = normalizeNoteText(part);
+                    const pos = (pn.length >= 4 && !SMART_GENERIC_NAMES.includes(pn)) ? findPhrasePos(norm, pn) : -1;
+                    if (pos >= 0) add({ tier: 1, len: pn.length, pos, catId: c.id, sub: '', source: 'Nama Kategori' });
+                });
+            });
+
+            // Tingkat 2 - kamus kata bawaan
+            SMART_CONCEPTS.forEach(k => {
+                if (k.t !== txType) return;
+                let bestLen = 0, bestPos = -1;
+                k.w.forEach(w => {
+                    const wn = normalizeNoteText(w);
+                    const pos = findPhrasePos(norm, wn);
+                    if (pos >= 0 && wn.length > bestLen) { bestLen = wn.length; bestPos = pos; }
+                });
+                if (bestLen > 0) add({ tier: 2, len: bestLen, pos: bestPos, concept: k, source: 'Kamus Otomatis' });
+            });
+
+            cands.sort((a, b) => (b.tier - a.tier) || (b.len - a.len) || (a.pos - b.pos) || (a.seq - b.seq));
+
+            for (const cd of cands) {
+                let catId = cd.catId, sub = cd.sub || '';
+                if (cd.concept) {
+                    const r = resolveSmartConcept(cd.concept, cats);
+                    if (!r) continue;
+                    catId = r.cat.id; sub = r.sub;
+                }
+                const cat = cats.find(c => c.id === catId);
+                if (!cat) continue;
+                if (sub && !(cat.subcategories || []).includes(sub)) sub = '';
+                return { ok: true, found: true, categoryId: cat.id, subcategory: sub, source: cd.source };
+            }
+            return { ok: true, found: false };
+        }
 
         function getCategoryMetaMap() {
             try { return JSON.parse(localStorage.getItem('artos_cat_icons') || '{}'); } catch { return {}; }
@@ -2035,6 +2220,10 @@
             if (noteEl) noteEl.addEventListener('input', scheduleSmartCategoryAnalysis);
             const typeEl = document.getElementById('txType');
             if (typeEl) typeEl.addEventListener('change', scheduleSmartCategoryAnalysis);
+            const catStrip = document.getElementById('txCategoryIconGrid');
+            if (catStrip) catStrip.addEventListener('wheel', e => {
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { catStrip.scrollLeft += e.deltaY; e.preventDefault(); }
+            }, { passive: false });
         });
 
         /* ====================================================================
@@ -2477,34 +2666,7 @@
             }
 
             if (method === 'analyzeSmartCategory') {
-                const [note, txType] = args;
-                const clean = String(note || '').toLowerCase().trim();
-                if (clean.length < 2) return { ok: true, found: false };
-
-                const { data: learned } = await sb.from('smart_learning').select('*').eq('transaction_type', txType).ilike('normalized_note', `%${clean}%`).limit(1);
-                if (learned && learned.length > 0) {
-                    return { ok: true, found: true, categoryId: learned[0].category_id, subcategory: learned[0].subcategory, source: 'Memori Riwayat' };
-                }
-
-                const { data: rules } = await sb.from('smart_rules').select('*').eq('active', true).eq('transaction_type', txType).order('priority', { ascending: false });
-                for (const r of (rules || [])) {
-                    const kws = String(r.keywords || '').split(',').map(k => k.trim().toLowerCase()).filter(Boolean);
-                    if (kws.some(k => clean.includes(k))) {
-                        return { ok: true, found: true, categoryId: r.category_id, subcategory: r.subcategory_name, source: 'Aturan Pintar' };
-                    }
-                }
-
-                const catsOfType = (appState.categories || []).filter(c => c.type === txType && c.active !== false);
-                for (const pat of BUILTIN_KEYWORD_PATTERNS) {
-                    if (pat.regex.test(clean)) {
-                        const matchedCat = catsOfType.find(c => pat.catMatch.test(c.name));
-                        if (matchedCat) {
-                            return { ok: true, found: true, categoryId: matchedCat.id, subcategory: '', source: 'Deteksi Otomatis' };
-                        }
-                    }
-                }
-
-                return { ok: true, found: false };
+                return await detectCategoryForNote(args[0], args[1]);
             }
 
             if (method === 'updateArtosUserProfile') {
@@ -4550,6 +4712,11 @@ function closeAllGoalOverlays() {
         /* ====================================================================
            6. MODAL TRANSAKSI & DETEKSI KATEGORI OTOMATIS
            ==================================================================== */
+        // Kunci kategori: '' = otomatis boleh mengisi | 'manual' = pilihan user (tidak ditimpa otomatis) | 'edit' = membuka transaksi lama
+        let txCategoryLock = '';
+        let txLastNoteLen = 0;
+        let smartKeywordBtnVisible = false;
+
         function setTxTypePill(type) {
             const sel = document.getElementById('txType');
             if (sel) sel.value = type;
@@ -4558,22 +4725,25 @@ function closeAllGoalOverlays() {
                 if (!btn) return;
                 if (t === type) {
                     const activeBg = t === 'INCOME' ? 'bg-emerald-600' : (t === 'TRANSFER' ? 'bg-blue-600' : 'bg-rose-600');
-                    btn.className = `py-2.5 rounded-2xl ${activeBg} text-white text-xs font-bold shadow-sm transition`;
+                    btn.className = `py-2 rounded-xl ${activeBg} text-white text-xs font-bold shadow-sm transition`;
                 } else {
-                    btn.className = 'py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition';
+                    btn.className = 'py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition';
                 }
             });
             const srcLabel = document.getElementById('txSourceWalletLabel');
             if (srcLabel) {
                 srcLabel.textContent = type === 'INCOME' ? 'Masuk ke akun' : (type === 'TRANSFER' ? 'Dari akun sumber' : 'Keluar dari akun');
             }
+            txCategoryLock = '';
             handleTxTypeChange();
+            scheduleSmartCategoryAnalysis();
         }
 
-        function renderTxCategoryIconGrid() {
+        function renderTxCategoryIconGrid(center = true) {
             const grid = document.getElementById('txCategoryIconGrid');
             const sel = document.getElementById('txCategorySelect');
             if (!grid || !sel) return;
+            const prevScroll = grid.scrollLeft;
             const currentVal = sel.value;
             const txType = document.getElementById('txType').value;
             const cats = appState.categories.filter(c => c.type === txType && c.active !== false);
@@ -4582,24 +4752,37 @@ function closeAllGoalOverlays() {
                 const selected = c.id === currentVal;
                 const iconObj = inferCategoryIcon(c);
                 return `
-                    <button type="button" onclick="pickTxCategoryTile('${c.id}')" class="flex flex-col items-center justify-center p-2 rounded-2xl border text-center transition active:scale-95 ${
+                    <button type="button" data-cat="${c.id}" title="${c.name}" onclick="pickTxCategoryTile('${c.id}')" class="flex flex-col items-center justify-center px-1 h-[46px] rounded-xl border text-center transition active:scale-95 ${
                         selected ? 'bg-teal-50 border-teal-500 text-teal-800 ring-2 ring-teal-500/20 font-bold' : 'bg-white border-slate-200/90 text-slate-600 hover:bg-slate-50'
                     }">
-                        <span class="text-lg leading-none mb-1">${iconObj.emoji}</span>
-                        <span class="text-[10px] leading-tight line-clamp-1">${c.name}</span>
+                        <span class="text-base leading-none">${iconObj.emoji}</span>
+                        <span class="text-[9px] leading-tight mt-0.5 w-full truncate">${c.name}</span>
                     </button>
                 `;
-            }).join('');
+            }).join('') + `
+                <button type="button" title="Kelola kategori" onclick="closeModal('addTransactionModal'); openSettingsTab('categories');" class="flex flex-col items-center justify-center px-1 h-[46px] rounded-xl border border-dashed border-slate-300 text-slate-400 hover:text-teal-600 hover:border-teal-400 transition">
+                    <span class="text-base leading-none">⚙️</span>
+                    <span class="text-[9px] leading-tight mt-0.5">Atur</span>
+                </button>
+            `;
+
+            const selBtn = center ? grid.querySelector(`[data-cat="${currentVal}"]`) : null;
+            if (selBtn) {
+                grid.scrollLeft = Math.max(0, selBtn.offsetLeft - (grid.clientWidth - selBtn.offsetWidth) / 2);
+            } else {
+                grid.scrollLeft = prevScroll;
+            }
         }
 
         function pickTxCategoryTile(catId) {
             const sel = document.getElementById('txCategorySelect');
-            if (sel) { sel.value = catId; updateSubcategoryOptions(); renderTxCategoryIconGrid(); }
+            if (sel) { sel.value = catId; updateSubcategoryOptions(); renderTxCategoryIconGrid(false); }
+            txCategoryLock = 'manual';
             const cat = appState.categories.find(c => c.id === catId);
-            const badge = document.getElementById('txActiveCategoryBadge');
-            if (badge && cat) badge.textContent = `Dipilih: ${cat.name}`;
+            const note = (document.getElementById('txNote')?.value || '').trim();
+            if (cat) setSmartStatus(note.length >= 2 ? 'manual' : 'idle', cat, '');
         }
-        function syncCategoryIconGrid() { renderTxCategoryIconGrid(); }
+        function syncCategoryIconGrid() { renderTxCategoryIconGrid(true); }
 
         function populateDropdowns(selectedType = 'EXPENSE') {
             const wSelect = document.getElementById('txWalletSelect');
@@ -4633,8 +4816,8 @@ function closeAllGoalOverlays() {
             if (!subSelect || !subWrapper) return;
             const cat = appState.categories.find(c => c.id === catId);
             const subs = (cat && cat.subcategories) ? cat.subcategories : [];
-            subSelect.innerHTML = '<option value="">-- Umum / Tanpa Subkategori --</option>';
-            if (subs.length === 0) {
+            subSelect.innerHTML = '<option value="">— Umum —</option>';
+            if (subs.length === 0 || document.getElementById('txType').value === 'TRANSFER') {
                 subWrapper.classList.add('hidden');
             } else {
                 subWrapper.classList.remove('hidden');
@@ -4646,73 +4829,121 @@ function closeAllGoalOverlays() {
             const type = document.getElementById('txType').value;
             const destWallet = document.getElementById('destWalletContainer');
             const catGrid = document.getElementById('categorySelectionGrid');
+            const panel = document.getElementById('smartCategoryPanel');
+            const subWrap = document.getElementById('txSubcategoryWrapper');
             if (type === 'TRANSFER') {
                 destWallet.classList.remove('hidden');
                 catGrid.classList.add('hidden');
+                if (panel) panel.classList.add('hidden');
+                if (subWrap) subWrap.classList.add('hidden');
             } else {
                 destWallet.classList.add('hidden');
                 catGrid.classList.remove('hidden');
+                if (panel) panel.classList.remove('hidden');
                 populateDropdowns(type);
             }
         }
 
-        function scheduleSmartCategoryAnalysis() {
+        /* ---------- Baris status kategori otomatis (tinggi tetap, tidak membuat modal melompat) ---------- */
+        function setSmartStatus(state, cat, sub, source) {
+            const view = document.getElementById('smartStatusView');
+            const emojiEl = document.getElementById('smartDetectedEmoji');
+            const msgEl = document.getElementById('smartCategoryMessage');
+            const btn = document.getElementById('btnKeywordToggle');
+            const box = document.getElementById('customKeywordSaveBox');
+            if (!view || !emojiEl || !msgEl) return;
+
+            let emoji = '✨', text = 'Ketik catatan, kategori dipilih otomatis', color = 'text-slate-400', showBtn = false;
+            if ((state === 'found' || state === 'manual') && cat) {
+                const subText = sub || (state === 'manual' ? (document.getElementById('txSubcategorySelect')?.value || '') : '');
+                emoji = inferCategoryIcon(cat).emoji;
+                text = `${state === 'found' ? 'Otomatis' : 'Dipilih'}: ${cat.name}${subText ? ' · ' + subText : ''}`;
+                color = state === 'found' ? 'text-emerald-700' : 'text-teal-700';
+                showBtn = !(state === 'found' && source === 'Kata Kunci Anda');
+            } else if (state === 'notfound') {
+                emoji = '💡';
+                text = 'Belum dikenali, pilih kategori di bawah';
+                color = 'text-amber-600';
+            }
+            const editorOpen = box && !box.classList.contains('hidden');
+            emojiEl.textContent = emoji;
+            msgEl.textContent = text;
+            view.className = `flex items-center gap-1.5 min-w-0 flex-1 text-[11px] font-semibold ${color}${editorOpen ? ' hidden' : ''}`;
+            smartKeywordBtnVisible = showBtn;
+            if (btn && !editorOpen) btn.classList.toggle('hidden', !showBtn);
+        }
+
+        function resetSmartPanel() {
+            toggleKeywordEditor(false);
+            setSmartStatus('idle');
+        }
+
+        function toggleKeywordEditor(open) {
+            const box = document.getElementById('customKeywordSaveBox');
+            const view = document.getElementById('smartStatusView');
+            const btn = document.getElementById('btnKeywordToggle');
+            const input = document.getElementById('customKeywordInput');
+            if (!box || !view || !btn || !input) return;
+            if (open) {
+                const words = normalizeNoteText(document.getElementById('txNote')?.value || '').split(' ').filter(Boolean);
+                input.value = words.slice(0, 3).join(' ');
+                box.classList.remove('hidden');
+                view.classList.add('hidden');
+                btn.classList.add('hidden');
+                setTimeout(() => { input.focus(); input.select(); }, 30);
+            } else {
+                box.classList.add('hidden');
+                view.classList.remove('hidden');
+                btn.classList.toggle('hidden', !smartKeywordBtnVisible);
+                input.value = '';
+            }
+        }
+
+        function scheduleSmartCategoryAnalysis(e) {
             clearTimeout(smartAnalyzeTimer);
-            const panel = document.getElementById('smartCategoryPanel');
             const type = document.getElementById('txType').value;
             const note = (document.getElementById('txNote').value || '').trim();
-            if (type === 'TRANSFER' || note.length < 2) {
-                if (panel) panel.classList.add('hidden');
+            if (e && e.type === 'input' && txCategoryLock === 'edit') txCategoryLock = '';
+            if (type === 'TRANSFER') return;
+
+            // Catatan dikosongkan total -> kunci pilihan manual dilepas supaya catatan berikutnya bisa otomatis lagi
+            if (note.length === 0 && txLastNoteLen > 0 && txCategoryLock === 'manual') txCategoryLock = '';
+            txLastNoteLen = note.length;
+
+            if (normalizeNoteText(note).length < 2) {
+                smartRequestSequence++;
+                if (!txCategoryLock) setSmartStatus('idle');
                 return;
             }
-            smartAnalyzeTimer = setTimeout(() => runSmartCategoryAnalysis(note, type), 200);
+            smartAnalyzeTimer = setTimeout(() => runSmartCategoryAnalysis(note, type), 250);
         }
 
         function runSmartCategoryAnalysis(note, txType) {
-            const panel = document.getElementById('smartCategoryPanel');
-            const msgEl = document.getElementById('smartCategoryMessage');
-            const srcEl = document.getElementById('smartCategorySource');
-            const emojiEl = document.getElementById('smartDetectedEmoji');
-            const kwInput = document.getElementById('customKeywordInput');
-            if (!panel || !msgEl) return;
-
             const reqId = ++smartRequestSequence;
-            artosCall('analyzeSmartCategory', [note, txType])
+            detectCategoryForNote(note, txType)
                 .then(res => {
-                    if (reqId !== smartRequestSequence) return;
-                    if (!res || !res.ok) { panel.classList.add('hidden'); return; }
-                    panel.classList.remove('hidden');
+                    if (reqId !== smartRequestSequence) return;                       // ada ketikan yang lebih baru
+                    if (document.getElementById('txType').value !== txType) return;   // tipe transaksi sudah diganti
+                    if (txCategoryLock) return;                                       // user sudah memilih sendiri
 
-                    if (res.found && res.categoryId) {
+                    if (res && res.found && res.categoryId) {
                         const catSelect = document.getElementById('txCategorySelect');
                         const hasOption = Array.from(catSelect.options).some(o => o.value === res.categoryId);
-                        if (hasOption) {
-                            catSelect.value = res.categoryId;
-                            updateSubcategoryOptions();
-                            renderTxCategoryIconGrid();
-                            if (res.subcategory) {
-                                const subSelect = document.getElementById('txSubcategorySelect');
-                                if (Array.from(subSelect.options).some(o => o.value === res.subcategory)) {
-                                    subSelect.value = res.subcategory;
-                                }
-                            }
+                        if (!hasOption) { setSmartStatus('notfound'); return; }
+                        catSelect.value = res.categoryId;
+                        updateSubcategoryOptions();
+                        if (res.subcategory) {
+                            const subSelect = document.getElementById('txSubcategorySelect');
+                            if (Array.from(subSelect.options).some(o => o.value === res.subcategory)) subSelect.value = res.subcategory;
                         }
+                        renderTxCategoryIconGrid(true);
                         const catObj = appState.categories.find(c => c.id === res.categoryId);
-                        const catName = catObj ? catObj.name : res.categoryId;
-                        const iconObj = catObj ? inferCategoryIcon(catObj) : { emoji: '✨' };
-                        if (emojiEl) emojiEl.textContent = iconObj.emoji;
-                        msgEl.textContent = `Otomatis: ${catName}${res.subcategory ? ' · ' + res.subcategory : ''}`;
-                        if (srcEl) srcEl.textContent = res.source || 'Auto';
-                        const badge = document.getElementById('txActiveCategoryBadge');
-                        if (badge) badge.textContent = `Otomatis: ${catName}`;
+                        setSmartStatus('found', catObj, document.getElementById('txSubcategorySelect').value, res.source);
                     } else {
-                        if (emojiEl) emojiEl.textContent = '💡';
-                        msgEl.textContent = 'Pilih kategori di bawah atau simpan kata kunci baru:';
-                        if (srcEl) srcEl.textContent = 'Baru';
+                        setSmartStatus('notfound');
                     }
-                    if (kwInput && !kwInput.value) kwInput.value = note.toLowerCase();
                 })
-                .catch(() => { if (reqId === smartRequestSequence) panel.classList.add('hidden'); });
+                .catch(() => { if (reqId === smartRequestSequence) setSmartStatus('idle'); });
         }
 
         function saveCustomKeywordRule() {
@@ -4728,7 +4959,9 @@ function closeAllGoalOverlays() {
             artosCall('saveArtosSmartRule', [{ keywords, categoryId, subcategory, type }])
                 .then(() => {
                     showToast(`Kata kunci "${keywords}" tersimpan!`);
-                    if (kwInput) kwInput.value = '';
+                    toggleKeywordEditor(false);
+                    const cat = appState.categories.find(c => c.id === categoryId);
+                    if (cat) setSmartStatus('found', cat, subcategory, 'Kata Kunci Anda');
                     artosLoadData(false);
                 })
                 .catch(err => showToast(err.message || 'Gagal menyimpan aturan.', 'error'));
@@ -4740,9 +4973,9 @@ function closeAllGoalOverlays() {
             document.getElementById('btnSubmitTxText').textContent = 'Simpan Transaksi';
             document.getElementById('txAmount').value = '';
             document.getElementById('txNote').value = '';
-            document.getElementById('smartCategoryPanel')?.classList.add('hidden');
-            const kwInput = document.getElementById('customKeywordInput');
-            if (kwInput) kwInput.value = '';
+            txCategoryLock = '';
+            txLastNoteLen = 0;
+            resetSmartPanel();
             clearReceiptPhoto();
 
             const now = new Date();
@@ -4752,6 +4985,7 @@ function closeAllGoalOverlays() {
 
             setTxTypePill('EXPENSE');
             openModal('addTransactionModal');
+            renderTxCategoryIconGrid(true);
             lucide.createIcons();
             setTimeout(() => document.getElementById('txNote')?.focus(), 120);
         }
@@ -4772,7 +5006,10 @@ function closeAllGoalOverlays() {
 
             const cleanNote = String(tx.note || '').replace(/\s*\[\d{2}:\d{2}\]\s*$/, '').trim();
             document.getElementById('txNote').value = cleanNote;
-            document.getElementById('smartCategoryPanel')?.classList.add('hidden');
+            resetSmartPanel();
+            clearTimeout(smartAnalyzeTimer);
+            smartRequestSequence++;
+            txLastNoteLen = cleanNote.length;
 
             document.getElementById('txWalletSelect').value = tx.walletId;
             if (tx.type === 'TRANSFER') {
@@ -4782,6 +5019,9 @@ function closeAllGoalOverlays() {
                 updateSubcategoryOptions();
                 renderTxCategoryIconGrid();
                 document.getElementById('txSubcategorySelect').value = tx.subcategory || '';
+                txCategoryLock = 'edit';
+                const editCat = appState.categories.find(c => c.id === tx.categoryId);
+                setSmartStatus(cleanNote.length >= 2 && editCat ? 'manual' : 'idle', editCat, tx.subcategory || '');
             }
 
             if (tx.receiptUrl && tx.receiptUrl.length > 10) {
@@ -4791,6 +5031,7 @@ function closeAllGoalOverlays() {
                 clearReceiptPhoto();
             }
             openModal('addTransactionModal');
+            renderTxCategoryIconGrid(true);
             lucide.createIcons();
         }
 
