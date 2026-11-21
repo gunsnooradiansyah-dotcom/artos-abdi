@@ -16,6 +16,7 @@
         html, body { background: #0f172a; margin: 0; }
         .hidden { display: none !important; }
         #authScreen { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #022c22 100%); }
+        .pin-dot.bg-emerald-500 { background: #10b981; border-color: #10b981; }
     </style>
     
     <!-- Tailwind CSS CDN -->
@@ -46,7 +47,9 @@
     </script>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=optional" rel="stylesheet">
     
     <!-- Lucide Icons & Supabase CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -2702,12 +2705,18 @@
             return { ok: true };
         }
 
+        let loadingShowTimer = null;
         function showLoading(title = 'Memproses Data...', subtitle = 'Menghubungkan ke Supabase Cloud') {
             document.getElementById('loadingTitle').textContent = title;
             document.getElementById('loadingSubtitle').textContent = subtitle;
-            document.getElementById('globalLoadingOverlay').classList.remove('hidden');
+            const ov = document.getElementById('globalLoadingOverlay');
+            if (!ov.classList.contains('hidden') || loadingShowTimer) return;   // sudah tampil / sudah dijadwalkan
+            loadingShowTimer = setTimeout(() => { loadingShowTimer = null; ov.classList.remove('hidden'); }, 250);
         }
-        function hideLoading() { document.getElementById('globalLoadingOverlay').classList.add('hidden'); }
+        function hideLoading() {
+            if (loadingShowTimer) { clearTimeout(loadingShowTimer); loadingShowTimer = null; }
+            document.getElementById('globalLoadingOverlay').classList.add('hidden');
+        }
 
         function artosLoadData(silent = false, opts = {}) {
             const quiet = !!opts.quiet, keepLoading = !!opts.keepLoading;
@@ -3032,7 +3041,11 @@
         function unlockApp() {
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('topStatusBar').classList.remove('hidden');
-            document.getElementById('mainAppLayout').classList.remove('hidden');
+            const mainLayout = document.getElementById('mainAppLayout');
+            mainLayout.classList.remove('hidden');
+            mainLayout.classList.remove('animate-fadeInUp');
+            void mainLayout.offsetWidth;
+            mainLayout.classList.add('animate-fadeInUp');
             clearPin();
             renderAllViews();
         }
@@ -3143,10 +3156,10 @@
                 const imgEl = document.getElementById(target.img);
                 const initEl = document.getElementById(target.initial);
                 if (savedAvatar && savedAvatar.length > 10) {
-                    if (imgEl) { imgEl.src = savedAvatar; imgEl.classList.remove('hidden'); }
+                    if (imgEl) { if (imgEl.getAttribute('src') !== savedAvatar) imgEl.src = savedAvatar; imgEl.classList.remove('hidden'); }
                     if (initEl) initEl.classList.add('hidden');
                 } else {
-                    if (imgEl) { imgEl.src = ''; imgEl.classList.add('hidden'); }
+                    if (imgEl) { if (imgEl.getAttribute('src')) imgEl.removeAttribute('src'); imgEl.classList.add('hidden'); }
                     if (initEl) { initEl.textContent = initials; initEl.classList.remove('hidden'); }
                 }
             });
@@ -3270,7 +3283,7 @@
             renderBillCalendar();
             renderDebtsTable();
             renderSettingsCrudViews();
-            renderDashboardCharts();
+            if (!document.getElementById('mainAppLayout').classList.contains('hidden')) renderDashboardCharts();
             renderNotificationsLog();
             lucide.createIcons();
         }
