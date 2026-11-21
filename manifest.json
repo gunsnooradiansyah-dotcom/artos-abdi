@@ -9,10 +9,16 @@
   "theme_color": "#0f172a",
   "icons": [
     {
-      "src": "./icon.png",
+      "src": "./icon-app.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-app.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
