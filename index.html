@@ -11,6 +11,12 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
+    <style>
+        /* Critical CSS: tampil benar sejak frame pertama, sebelum Tailwind CDN selesai dimuat */
+        html, body { background: #0f172a; margin: 0; }
+        .hidden { display: none !important; }
+        #authScreen { background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #022c22 100%); }
+    </style>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -2703,11 +2709,12 @@
         }
         function hideLoading() { document.getElementById('globalLoadingOverlay').classList.add('hidden'); }
 
-        function artosLoadData(silent = false) {
-            if (!silent) showLoading('Memuat Data...', 'Mengambil data dari Supabase');
+        function artosLoadData(silent = false, opts = {}) {
+            const quiet = !!opts.quiet, keepLoading = !!opts.keepLoading;
+            if (!silent && !quiet) showLoading('Memuat Data...', 'Mengambil data dari Supabase');
             return artosCall('getArtosAppData')
                 .then(data => {
-                    hideLoading();
+                    if (!keepLoading) hideLoading();
                     if (!data || !data.ok) throw new Error('Gagal membaca data.');
                     appState.wallets = data.wallets || [];
                     appState.categories = data.categories || [];
@@ -2726,12 +2733,12 @@
                         try { localStorage.setItem('artos_profile_name', data.userName); } catch(e) {}
                     }
                     renderAllViews();
-                    if (silent) showToast('Data berhasil diperbarui.');
+                    if (silent && !quiet) showToast('Data berhasil diperbarui.');
                     return data;
                 })
                 .catch(err => {
                     hideLoading();
-                    showToast(err.message || 'Gagal memuat database.', 'error');
+                    if (!quiet) showToast(err.message || 'Gagal memuat database.', 'error');
                     throw err;
                 });
         }
@@ -2820,8 +2827,8 @@
 
             artosGasRun()
                 .withSuccessHandler(result => {
-                    hideLoading();
                     if (!result || !result.ok) {
+                        hideLoading();
                         const msg = (result && result.message) || 'PIN salah.';
                         errEl.textContent = msg;
                         errEl.classList.remove('hidden');
@@ -2861,13 +2868,16 @@
                 initUserProfile();
             }
 
-            artosLoadData(false)
+            showLoading('Memuat Data...', 'Mengambil data dari Supabase');
+            artosLoadData(false, { keepLoading: true })
                 .then(() => {
                     stopAuthWebcam();
                     unlockApp();
+                    hideLoading();
                     showToast('Login berhasil. Selamat datang, ' + userName + '!');
                 })
                 .catch(err => {
+                    hideLoading();
                     artosSessionToken = '';
                     showToast('Gagal membaca database: ' + err.message, 'error');
                     clearPin();
@@ -3481,8 +3491,8 @@
             try {
                 artosRealtimeChannel = sb
                     .channel('artos-abdi-live')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => artosLoadData(false))
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, () => artosLoadData(false))
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => artosLoadData(false, { quiet: true }).catch(() => {}))
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, () => artosLoadData(false, { quiet: true }).catch(() => {}))
                     .subscribe();
             } catch (e) {}
         }
