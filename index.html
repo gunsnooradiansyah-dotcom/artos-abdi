@@ -1517,18 +1517,48 @@
                 <input type="hidden" id="editDebtId">
                 <input type="hidden" id="editDebtPaidInstallments" value="0">
                 <input type="hidden" id="editDebtStatus" value="BELUM_LUNAS">
+                <input type="hidden" id="debtCustomImageBase64">
+
+                <!-- Logo Pihak / Bank / E-Wallet (Sinkron otomatis dari Dompet atau Upload Custom) -->
+                <div class="p-3 bg-slate-50 border border-slate-200 rounded-2xl flex items-center gap-3">
+                    <div id="debtLogoLivePreview" class="w-12 h-12 rounded-2xl bg-slate-700 text-white font-extrabold text-xs flex items-center justify-center overflow-hidden shrink-0 shadow-sm border border-slate-200">
+                        📄
+                    </div>
+                    <div class="flex-1 space-y-1 min-w-0">
+                        <span class="text-[11px] font-bold text-slate-700 block">Logo Pihak / Bank / E-Wallet</span>
+                        <span id="debtLogoSyncHint" class="text-[10px] text-emerald-600 font-medium block truncate">Otomatis sinkron dengan logo Dompet jika nama cocok</span>
+                        <div class="flex flex-wrap gap-1.5 pt-0.5">
+                            <label class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[10px] font-bold rounded-lg cursor-pointer transition inline-flex items-center gap-1">
+                                <i data-lucide="image-plus" class="w-3 h-3"></i> Upload / Ganti Logo
+                                <input type="file" id="debtCustomLogoInput" accept="image/*" class="hidden" onchange="handleDebtLogoUpload(this)">
+                            </label>
+                            <button type="button" onclick="clearDebtCustomLogo()" class="px-2 py-1 bg-white border border-slate-200 text-slate-600 hover:text-rose-600 text-[10px] font-semibold rounded-lg">Reset / Otomatis</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-2 gap-3">
                     <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Jenis</label>
+                        <label class="text-[11px] font-semibold text-slate-600">Jenis Transaksi</label>
                         <select id="debtTypeInput" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
                             <option value="UTANG">Utang / Tagihan Saya</option>
                             <option value="PIUTANG">Piutang (Hak Tagih)</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-[11px] font-semibold text-slate-600">Nama Pihak / Tagihan</label>
-                        <input type="text" id="debtPersonInput" required placeholder="misal: BTN KPR / Shopee PayLater" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <label class="text-[11px] font-semibold text-slate-600">Kategori Pihak</label>
+                        <select id="debtEntityCategoryInput" onchange="updateDebtLogoPreview()" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
+                            <option value="AUTO">Otomatis (Deteksi Nama)</option>
+                            <option value="BANK">Bank / Kartu Kredit</option>
+                            <option value="EWALLET">E-Wallet / PayLater</option>
+                            <option value="PERSON">Perorangan / Lainnya</option>
+                        </select>
                     </div>
+                </div>
+
+                <div>
+                    <label class="text-[11px] font-semibold text-slate-600">Nama Pihak / Bank / Tagihan</label>
+                    <input type="text" id="debtPersonInput" required oninput="updateDebtLogoPreview()" placeholder="misal: BTN KPR / Shopee PayLater / Tokopedia Card BRI / Nama Teman" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
@@ -1861,6 +1891,7 @@
 
             const name = String((w && w.name) || '').toLowerCase();
             const type = String((w && w.type) || 'CASH').toUpperCase();
+            if (name.includes('tokopedia') && name.includes('bri')) return { code: 'TKP·BRI', bg: 'bg-emerald-600 text-white', customImg: '', accountNumber };
             if (name.includes('bri') || name.includes('brimo')) return { code: 'BRI', bg: 'bg-blue-700 text-white', customImg: '', accountNumber };
             if (name.includes('bca')) return { code: 'BCA', bg: 'bg-sky-700 text-white', customImg: '', accountNumber };
             if (name.includes('mandiri') || name.includes('livin')) return { code: 'MDR', bg: 'bg-amber-500 text-slate-950', customImg: '', accountNumber };
@@ -1886,18 +1917,98 @@
             return { code: '💵', bg: 'bg-emerald-600 text-white', customImg: '', accountNumber };
         }
 
-        function getDebtBrandVisual(d) {
-            const personLower = String((d && d.person) || '').toLowerCase();
-            // Cek apakah ada logo custom yang pernah diupload di Dompet & Rekening dengan nama bank/e-wallet yang sama
-            const matchedWallet = (appState.wallets || []).find(w => {
+        function getDebtMetaMap() {
+            try { return JSON.parse(localStorage.getItem('artos_debt_meta') || '{}'); } catch { return {}; }
+        }
+        function saveDebtMetaLocal(debtId, meta) {
+            const all = getDebtMetaMap();
+            all[debtId] = { ...(all[debtId] || {}), ...meta };
+            try { localStorage.setItem('artos_debt_meta', JSON.stringify(all)); } catch {}
+        }
+
+        function inferDebtEntityCategory(d) {
+            const meta = (d && d.id) ? (getDebtMetaMap()[d.id] || {}) : {};
+            const explicit = (d && d.entityCategory) || meta.entityCategory || 'AUTO';
+            if (explicit && explicit !== 'AUTO') return explicit;
+            const n = String((d && d.person) || '').toLowerCase();
+            if (/shopee|shopeepay|shopepay|spay|gopay|ovo|dana|linkaja|kredivo|akulaku|paylater|indodana|atome/.test(n)) return 'EWALLET';
+            if (/bank|bri|bca|mandiri|bni|btn|bsi|cimb|danamon|permata|seabank|superbank|super bank|jago|kpr|kartu kredit|tokopedia card/.test(n)) return 'BANK';
+            return 'PERSON';
+        }
+
+        function getDebtEntityBadgeHtml(d) {
+            const cat = inferDebtEntityCategory(d);
+            if (cat === 'BANK') return '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">🏦 Bank</span>';
+            if (cat === 'EWALLET') return '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-orange-50 text-orange-700 border border-orange-200/80">📱 E-Wallet / PayLater</span>';
+            return '<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-600 border border-slate-200/80">👤 Perorangan</span>';
+        }
+
+        function findSyncedWalletForName(personName) {
+            const personLower = String(personName || '').toLowerCase().trim();
+            if (!personLower) return null;
+
+            const brandAliases = [
+                /btn/,
+                /shopee|shopeepay|shopepay|spay/,
+                /bri|brimo/,
+                /bca/,
+                /mandiri|livin/,
+                /bni/,
+                /bsi|syariah/,
+                /seabank/,
+                /super\s*bank/,
+                /jago/,
+                /gopay|gojek/,
+                /ovo/,
+                /dana/,
+                /linkaja/
+            ];
+
+            const wallets = appState.wallets || [];
+            // 1. Prioritaskan dompet yang sudah punya logo custom (upload)
+            for (const w of wallets) {
+                const wBrand = getWalletBrandVisual(w);
+                if (!wBrand.customImg) continue;
                 const wName = String(w.name || '').toLowerCase().trim();
-                return wName.length >= 3 && personLower.includes(wName);
-            });
+                if (wName.length >= 2 && (personLower.includes(wName) || wName.includes(personLower))) return w;
+                const matchedRegex = brandAliases.find(rx => rx.test(personLower) && rx.test(wName));
+                if (matchedRegex) return w;
+            }
+            // 2. Fallback dompet yang namanya cocok meski tanpa custom image
+            for (const w of wallets) {
+                const wName = String(w.name || '').toLowerCase().trim();
+                if (wName.length >= 2 && (personLower.includes(wName) || wName.includes(personLower))) return w;
+                const matchedRegex = brandAliases.find(rx => rx.test(personLower) && rx.test(wName));
+                if (matchedRegex) return w;
+            }
+            return null;
+        }
+
+        function getDebtBrandVisual(d) {
+            const meta = (d && d.id) ? (getDebtMetaMap()[d.id] || {}) : {};
+            const customDebtLogo = (d && d.logoUrl) || meta.customImage || '';
+            // 1. Jika user upload logo custom khusus di Utang/Piutang, gunakan itu
+            if (customDebtLogo) {
+                return { code: '', bg: 'bg-white', customImg: customDebtLogo, accountNumber: '', syncedFromWallet: false };
+            }
+
+            // 2. Sinkron otomatis dengan logo custom di Dompet & Rekening (BTN, Shopee, BRI, dll.)
+            const matchedWallet = findSyncedWalletForName((d && d.person) || '');
             if (matchedWallet) {
                 const wBrand = getWalletBrandVisual(matchedWallet);
-                if (wBrand.customImg) return wBrand;
+                if (wBrand.customImg) {
+                    return { ...wBrand, syncedFromWallet: true, syncedWalletName: matchedWallet.name };
+                }
             }
-            return getWalletBrandVisual({ id: '', name: (d && d.person) || '', type: 'BILL', logoUrl: '' });
+
+            // 3. Fallback badge brand / ikon perorangan
+            const cat = inferDebtEntityCategory(d);
+            const fallbackType = cat === 'PERSON' ? 'PERSON' : 'BILL';
+            const baseVisual = getWalletBrandVisual({ id: '', name: (d && d.person) || '', type: fallbackType, logoUrl: '' });
+            if (cat === 'PERSON' && baseVisual.code === '💵') {
+                return { code: '👤', bg: 'bg-slate-600 text-white', customImg: '', accountNumber: '', syncedFromWallet: false };
+            }
+            return { ...baseVisual, syncedFromWallet: false };
         }
 
         function renderWalletAvatarHtml(brand, sizeClass = 'w-10 h-10', textClass = 'text-[11px]') {
@@ -2067,6 +2178,7 @@
                         const tenor = Number(d.tenor_months || 0);
                         const paid = Number(d.paid_installments || 0);
                         const bal = Number(d.amount || 0);
+                        const dMeta = getDebtMetaMap()[d.debt_id] || {};
                         return {
                             id: d.debt_id,
                             person: d.person_name,
@@ -2080,7 +2192,9 @@
                             paidInstallments: paid,
                             remainingMonths: Math.max(0, tenor - paid),
                             paymentDay: Number(d.payment_day || 0),
-                            notes: d.notes || ''
+                            notes: d.notes || '',
+                            logoUrl: d.logo_url || dMeta.customImage || '',
+                            entityCategory: d.entity_category || dMeta.entityCategory || 'AUTO'
                         };
                     }),
                     notifications: (nRes.data || []).map(n => ({
@@ -2312,14 +2426,31 @@
             if (method === 'saveArtosDebt') {
                 const d = args[0];
                 const id = d.id || genArtosId('DEBT');
-                const { error } = await sb.from('debts').upsert({
+                let finalLogoUrl = '';
+                if (d.customImage) {
+                    finalLogoUrl = await uploadImageToSupabaseBucket('avatars', d.customImage, 'debt_logo_' + id);
+                }
+                saveDebtMetaLocal(id, {
+                    customImage: finalLogoUrl,
+                    entityCategory: d.entityCategory || 'AUTO'
+                });
+
+                const basePayload = {
                     debt_id: id, person_name: d.person || d.personName, type: d.type, amount: Number(d.amount || 0),
                     due_date: d.dueDate || null, status: d.status || 'BELUM_LUNAS',
                     tenor_months: Number(d.tenorMonths || 0), monthly_installment: Number(d.monthlyInstallment || 0),
                     paid_installments: Number(d.paidInstallments || 0), payment_day: Number(d.paymentDay || 0), notes: d.notes || ''
+                };
+                const { error } = await sb.from('debts').upsert({
+                    ...basePayload,
+                    logo_url: finalLogoUrl,
+                    entity_category: d.entityCategory || 'AUTO'
                 });
-                if (error) throw new Error(error.message);
-                return { ok: true, id: id };
+                if (error) {
+                    const { error: fallbackErr } = await sb.from('debts').upsert(basePayload);
+                    if (fallbackErr) throw new Error(fallbackErr.message);
+                }
+                return { ok: true, id: id, logoUrl: finalLogoUrl };
             }
 
             if (method === 'payDebtInstallment') {
@@ -3932,6 +4063,7 @@ function closeAllGoalOverlays() {
                                 <div class="min-w-0 flex-1">
                                     <div class="flex flex-wrap items-center gap-1.5 mb-1">
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span>
+                                        ${getDebtEntityBadgeHtml(d)}
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isLunas ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${d.status}</span>
                                     </div>
                                     <h4 class="font-bold text-slate-800 text-sm leading-snug">${d.person}</h4>
@@ -3982,7 +4114,7 @@ function closeAllGoalOverlays() {
                                 </div>
                             </div>
                         </td>
-                        <td class="py-3 px-4"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span></td>
+                        <td class="py-3 px-4"><div class="flex flex-wrap items-center gap-1"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span>${getDebtEntityBadgeHtml(d)}</div></td>
                         <td class="py-3 px-4 font-mono text-slate-500">
                             ${d.dueDate || '-'}
                             ${d.paymentDay ? `<p class="text-[10px] text-emerald-600 font-sans font-semibold">Tiap tgl ${d.paymentDay}</p>` : ''}
@@ -4033,8 +4165,9 @@ function closeAllGoalOverlays() {
                         <div class="flex items-center gap-3 min-w-0 flex-1">
                             ${renderWalletAvatarHtml(brand, 'w-11 h-11', 'text-[11px]')}
                             <div class="min-w-0 flex-1">
-                                <div class="flex items-center gap-1.5">
+                                <div class="flex flex-wrap items-center gap-1.5">
                                     <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${isUtang ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}">${d.type}</span>
+                                    ${getDebtEntityBadgeHtml(d)}
                                     ${d.status === 'LUNAS' ? `<span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-700">LUNAS</span>` : ''}
                                 </div>
                                 <h5 class="font-bold text-slate-800 text-xs mt-1 truncate">${d.person}</h5>
@@ -4885,13 +5018,73 @@ function closeAllGoalOverlays() {
                 .catch(err => { setButtonLoading('btnSubmitDeposit', false, 'Setor'); showToast(err.message, 'error'); });
         }
 
+        function handleDebtLogoUpload(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const isPng = file.type === 'image/png';
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 160; canvas.height = 160;
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, 160, 160);
+                    const minDim = Math.min(img.width, img.height);
+                    ctx.drawImage(img, (img.width - minDim) / 2, (img.height - minDim) / 2, minDim, minDim, 0, 0, 160, 160);
+                    const dataUrl = isPng ? canvas.toDataURL('image/png') : canvas.toDataURL('image/jpeg', 0.85);
+                    document.getElementById('debtCustomImageBase64').value = dataUrl;
+                    updateDebtLogoPreview();
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+            input.value = '';
+        }
+
+        function clearDebtCustomLogo() {
+            document.getElementById('debtCustomImageBase64').value = '';
+            updateDebtLogoPreview();
+        }
+
+        function updateDebtLogoPreview() {
+            const previewEl = document.getElementById('debtLogoLivePreview');
+            const hintEl = document.getElementById('debtLogoSyncHint');
+            if (!previewEl) return;
+
+            const customImg = document.getElementById('debtCustomImageBase64').value;
+            const person = document.getElementById('debtPersonInput').value;
+            const entityCategory = document.getElementById('debtEntityCategoryInput')?.value || 'AUTO';
+
+            if (customImg) {
+                previewEl.className = "w-12 h-12 rounded-2xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-sm";
+                previewEl.innerHTML = `<img src="${customImg}" class="w-full h-full object-cover">`;
+                if (hintEl) hintEl.textContent = 'Menggunakan logo khusus yang diupload';
+                return;
+            }
+
+            const brand = getDebtBrandVisual({ id: '', person, entityCategory, logoUrl: '' });
+            if (brand.customImg) {
+                previewEl.className = "w-12 h-12 rounded-2xl bg-white border border-slate-200 overflow-hidden flex items-center justify-center shrink-0 shadow-sm";
+                previewEl.innerHTML = `<img src="${brand.customImg}" class="w-full h-full object-cover">`;
+                if (hintEl) hintEl.textContent = `Sinkron otomatis dengan logo Dompet (${brand.syncedWalletName || 'Terhubung'})`;
+                return;
+            }
+
+            previewEl.className = `w-12 h-12 rounded-2xl ${brand.bg} font-extrabold text-xs flex items-center justify-center overflow-hidden shrink-0 shadow-sm`;
+            previewEl.textContent = brand.code;
+            if (hintEl) hintEl.textContent = 'Otomatis sinkron dengan logo Dompet jika nama cocok';
+        }
+
         function openAddDebtModal() {
             document.getElementById('debtModalTitle').innerHTML = '<i data-lucide="receipt-text" class="w-4 h-4 mr-1.5 text-emerald-600"></i> Catat Utang, Piutang & KPR';
             document.getElementById('btnSubmitDebtText').textContent = 'Simpan Catatan';
             document.getElementById('editDebtId').value = '';
             document.getElementById('editDebtPaidInstallments').value = '0';
             document.getElementById('editDebtStatus').value = 'BELUM_LUNAS';
+            document.getElementById('debtCustomImageBase64').value = '';
             document.getElementById('debtTypeInput').value = 'UTANG';
+            document.getElementById('debtEntityCategoryInput').value = 'AUTO';
             document.getElementById('debtPersonInput').value = '';
             document.getElementById('debtAmountInput').value = '';
             document.getElementById('debtDueDateInput').value = new Date().toISOString().split('T')[0];
@@ -4899,18 +5092,22 @@ function closeAllGoalOverlays() {
             document.getElementById('debtMonthlyInstInput').value = '';
             document.getElementById('debtPaymentDayInput').value = '';
             document.getElementById('debtNotesInput').value = '';
+            updateDebtLogoPreview();
             openModal('addDebtModal');
             lucide.createIcons();
         }
         function openEditDebtModal(id) {
             const d = appState.debts.find(item => item.id === id);
             if (!d) return;
+            const dMeta = getDebtMetaMap()[d.id] || {};
             document.getElementById('debtModalTitle').innerHTML = '<i data-lucide="edit-3" class="w-4 h-4 mr-1.5 text-emerald-600"></i> Edit Utang, Piutang & KPR';
             document.getElementById('btnSubmitDebtText').textContent = 'Simpan Perubahan';
             document.getElementById('editDebtId').value = d.id;
             document.getElementById('editDebtPaidInstallments').value = d.paidInstallments || 0;
             document.getElementById('editDebtStatus').value = d.status || 'BELUM_LUNAS';
+            document.getElementById('debtCustomImageBase64').value = d.logoUrl || dMeta.customImage || '';
             document.getElementById('debtTypeInput').value = d.type;
+            document.getElementById('debtEntityCategoryInput').value = d.entityCategory || dMeta.entityCategory || 'AUTO';
             document.getElementById('debtPersonInput').value = d.person;
             document.getElementById('debtAmountInput').value = Number(d.amount || 0).toLocaleString('id-ID');
             document.getElementById('debtDueDateInput').value = d.dueDate || '';
@@ -4918,6 +5115,7 @@ function closeAllGoalOverlays() {
             document.getElementById('debtMonthlyInstInput').value = d.monthlyInstallment ? Number(d.monthlyInstallment).toLocaleString('id-ID') : '';
             document.getElementById('debtPaymentDayInput').value = d.paymentDay || '';
             document.getElementById('debtNotesInput').value = d.notes || '';
+            updateDebtLogoPreview();
             openModal('addDebtModal');
             lucide.createIcons();
         }
@@ -4927,7 +5125,9 @@ function closeAllGoalOverlays() {
             const paidInstallments = Number(document.getElementById('editDebtPaidInstallments').value) || 0;
             const status = document.getElementById('editDebtStatus').value || 'BELUM_LUNAS';
             const type = document.getElementById('debtTypeInput').value;
+            const entityCategory = document.getElementById('debtEntityCategoryInput').value || 'AUTO';
             const person = document.getElementById('debtPersonInput').value.trim();
+            const customImage = document.getElementById('debtCustomImageBase64').value;
             const amount = parseNumericInput(document.getElementById('debtAmountInput').value);
             const dueDate = document.getElementById('debtDueDateInput').value;
             const tenorMonths = Number(document.getElementById('debtTenorMonthsInput').value) || 0;
@@ -4937,8 +5137,8 @@ function closeAllGoalOverlays() {
 
             if (!person || amount <= 0) { showToast('Nama dan nominal wajib valid!', 'error'); return; }
             setButtonLoading('btnSubmitDebt', true);
-            artosCall('saveArtosDebt', [{ id: editId || undefined, person, type, amount, dueDate, tenorMonths, monthlyInstallment, paidInstallments, paymentDay, notes, status }])
-                .then(() => { setButtonLoading('btnSubmitDebt', false, 'Simpan Catatan'); closeModal('addDebtModal'); showToast(editId ? 'Catatan diperbarui!' : 'Catatan ditambahkan!'); artosLoadData(false); })
+            artosCall('saveArtosDebt', [{ id: editId || undefined, person, type, entityCategory, customImage, amount, dueDate, tenorMonths, monthlyInstallment, paidInstallments, paymentDay, notes, status }])
+                .then(() => { setButtonLoading('btnSubmitDebt', false, 'Simpan Catatan'); closeModal('addDebtModal'); showToast(editId ? 'Catatan & logo diperbarui!' : 'Catatan ditambahkan!'); artosLoadData(false); })
                 .catch(err => { setButtonLoading('btnSubmitDebt', false, 'Simpan Catatan'); showToast(err.message, 'error'); });
         }
 
