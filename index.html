@@ -497,8 +497,14 @@
                                     <h3 class="font-bold text-slate-800 text-sm flex items-center">
                                         <i data-lucide="credit-card" class="w-4 h-4 mr-2 text-emerald-600"></i> Komposisi Dompet
                                     </h3>
-                                    <button type="button" onclick="openSettingsTab('wallets')" class="text-[11px] font-bold text-emerald-600 hover:underline">Atur di Pengaturan</button>
+                                    <div class="flex items-center gap-2">
+                                        <button type="button" onclick="openCekSaldoModal()" class="text-[11px] font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-lg flex items-center gap-1 transition">
+                                            <i data-lucide="scale" class="w-3.5 h-3.5"></i> Cek Saldo
+                                        </button>
+                                        <button type="button" onclick="openSettingsTab('wallets')" class="text-[11px] font-bold text-emerald-600 hover:underline">Atur di Pengaturan</button>
+                                    </div>
                                 </div>
+                                <div id="cekSaldoReminder" onclick="openCekSaldoModal()" class="hidden cursor-pointer text-[11px] font-semibold rounded-xl px-3 py-2"></div>
                                 <div id="dashboardWalletsWidget" class="space-y-2.5 max-h-64 overflow-y-auto pr-1"></div>
                             </div>
 
@@ -864,9 +870,14 @@
                                     <h4 class="font-bold text-slate-800 text-sm">Manajemen Akun Dompet, Bank & E-Wallet</h4>
                                     <p class="text-[11px] text-slate-500">Upload gambar logo bank/e-wallet (tersimpan ke Supabase) & simpan nomor rekening/HP</p>
                                 </div>
-                                <button type="button" onclick="openAddWalletModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center shadow-sm transition">
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="openCekSaldoModal()" class="bg-white hover:bg-slate-50 text-emerald-700 border border-emerald-200 text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center shadow-sm transition">
+                                        <i data-lucide="scale" class="w-4 h-4 mr-1"></i> Cek Saldo
+                                    </button>
+                                    <button type="button" onclick="openAddWalletModal()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3.5 py-2 rounded-xl flex items-center shadow-sm transition">
                                     <i data-lucide="plus" class="w-4 h-4 mr-1"></i> Tambah Dompet
                                 </button>
+                                </div>
                             </div>
                             <div id="walletsListContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
                         </div>
@@ -1092,6 +1103,19 @@
                     </div>
                 </div>
                 <i data-lucide="chevron-right" class="w-5 h-5 text-white/80"></i>
+            </button>
+
+            <button type="button" onclick="closeModal('mobileMenuSheet'); openCekSaldoModal();" class="w-full p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-2xl flex items-center justify-between text-left transition active:scale-95">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2 bg-emerald-500/10 text-emerald-600 rounded-xl">
+                        <i data-lucide="scale" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-bold text-slate-800 block">Cek Saldo</span>
+                        <span class="text-[9px] text-slate-400 block">Cocokkan dengan saldo bank & e-wallet</span>
+                    </div>
+                </div>
+                <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
             </button>
 
             <div class="grid grid-cols-2 gap-2.5 pt-1">
@@ -1348,6 +1372,72 @@
                     <button type="submit" id="btnSubmitWalletForm" class="flex-1 py-2.5 bg-emerald-600 text-white font-semibold text-xs rounded-xl shadow-md">Simpan Dompet</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL CEK SALDO: cocokkan saldo Artos Abdi dengan saldo asli bank / e-wallet -->
+    <div id="cekSaldoModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-100 pb-2.5">
+                <h3 class="font-bold text-slate-800 text-sm">Cek Saldo</h3>
+                <button type="button" onclick="closeModal('cekSaldoModal')" class="text-slate-400 hover:text-slate-700">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div>
+                <label class="text-[11px] font-semibold text-slate-600">Akun</label>
+                <select id="cekWalletSelect" onchange="onCekWalletChange()" class="w-full text-xs border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-semibold bg-white"></select>
+                <p id="cekLastInfo" class="text-[10px] text-slate-500 mt-1"></p>
+            </div>
+
+            <div>
+                <label class="text-[11px] font-semibold text-slate-600">Saldo yang tampil di aplikasi bank / e-wallet (Rp)</label>
+                <input type="text" inputmode="numeric" id="cekActualInput" placeholder="0" oninput="formatCurrencyInput(this); renderCekResult()" class="w-full text-base border border-slate-200 rounded-xl p-2.5 mt-1 focus:ring-2 focus:ring-emerald-500 outline-none font-extrabold">
+            </div>
+
+            <div id="cekResult" class="hidden space-y-3">
+                <div class="grid grid-cols-3 gap-2 text-center">
+                    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span class="text-[10px] text-slate-500 block">Di Artos Abdi</span>
+                        <span id="cekRecordedText" class="text-xs font-extrabold text-slate-800"></span>
+                    </div>
+                    <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
+                        <span class="text-[10px] text-slate-500 block">Saldo asli</span>
+                        <span id="cekActualText" class="text-xs font-extrabold text-slate-800"></span>
+                    </div>
+                    <div id="cekDiffBox" class="p-2.5 border rounded-xl">
+                        <span class="text-[10px] block">Selisih</span>
+                        <span id="cekDiffText" class="text-xs font-extrabold"></span>
+                    </div>
+                </div>
+
+                <p id="cekMatchMsg" class="hidden text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2">Saldo sudah cocok. Tidak ada transaksi yang terlewat.</p>
+
+                <div id="cekSplitBox" class="hidden space-y-2.5">
+                    <div>
+                        <h4 id="cekSplitTitle" class="text-xs font-bold text-slate-800"></h4>
+                        <p class="text-[10px] text-slate-500">Rinci selisih ini kalau Anda ingat transaksinya. Sisa yang tidak dirinci dicatat sebagai satu transaksi koreksi.</p>
+                    </div>
+                    <div id="cekRows" class="space-y-2"></div>
+                    <button type="button" onclick="addCekRow()" class="text-[11px] font-bold text-emerald-600 hover:underline flex items-center gap-1">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Tambah rincian
+                    </button>
+                    <div id="cekRemainderBox" class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl space-y-1.5">
+                        <p id="cekRemainderText" class="text-[11px] font-bold text-amber-800"></p>
+                        <div class="flex gap-2">
+                            <select id="cekRemCat" onchange="cekRemCat=this.value" class="w-1/2 text-xs border border-slate-200 rounded-xl p-2 outline-none bg-white"></select>
+                            <input type="text" id="cekRemNote" oninput="cekRemNote=this.value" placeholder="Catatan" class="w-1/2 text-xs border border-slate-200 rounded-xl p-2 outline-none">
+                        </div>
+                    </div>
+                    <p id="cekOverMsg" class="hidden text-[11px] font-bold text-rose-600"></p>
+                </div>
+            </div>
+
+            <div class="flex space-x-2 pt-1">
+                <button type="button" onclick="closeModal('cekSaldoModal')" class="flex-1 py-2.5 border text-xs font-semibold rounded-xl text-slate-600">Batal</button>
+                <button type="button" id="btnSubmitCek" onclick="handleSaveCek()" class="flex-1 py-2.5 bg-emerald-600 text-white font-semibold text-xs rounded-xl shadow-md"><span id="btnSubmitCekText">Simpan hasil cek</span></button>
+            </div>
         </div>
     </div>
 
@@ -3250,6 +3340,7 @@
             renderSettingsCrudViews();
             if (!document.getElementById('mainAppLayout').classList.contains('hidden')) renderDashboardCharts();
             renderNotificationsLog();
+            renderCekSaldoReminder();
             lucide.createIcons();
         }
 
@@ -5593,6 +5684,262 @@ function closeAllGoalOverlays() {
             input.value = val ? Number(val).toLocaleString('id-ID') : '';
         }
         function parseNumericInput(str) { return Number(String(str || '').replace(/\D/g, '')) || 0; }
+
+        /* ====================================================================
+           CEK SALDO: cocokkan saldo Artos Abdi dengan saldo asli bank / e-wallet
+           ==================================================================== */
+        let cekRows = [];
+        let cekKind = null;      // 'EXPENSE' (saldo asli lebih kecil) atau 'INCOME' (lebih besar)
+        let cekRemCat = '';
+        let cekRemNote = 'Belum tercatat';
+        let cekLastMap = {};     // { namaDompet: Date terakhir dicek }
+
+        function cekEsc(v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); }
+        function cekToday() { return new Date().toLocaleDateString('sv-SE'); }
+        function cekCategoriesFor(kind) { return (appState.categories || []).filter(c => c.active !== false && c.type === kind); }
+        function cekDefaultCategory(kind) {
+            const list = cekCategoriesFor(kind);
+            const pref = list.find(c => /lain|belum|koreksi|selisih/i.test(c.name));
+            return (pref || list[0] || {}).id || '';
+        }
+        function cekCategoryOptions(kind, selected) {
+            return cekCategoriesFor(kind).map(c => `<option value="${cekEsc(c.id)}" ${c.id === selected ? 'selected' : ''}>${cekEsc(c.name)}</option>`).join('');
+        }
+        function cekSelectedWallet() {
+            const id = document.getElementById('cekWalletSelect')?.value;
+            return appState.wallets.find(w => w.id === id) || null;
+        }
+        function cekNumbers() {
+            const w = cekSelectedWallet();
+            const raw = document.getElementById('cekActualInput').value;
+            if (!w || raw === '') return null;
+            const recorded = Number(w.balance) || 0;
+            const actual = parseNumericInput(raw);
+            return { w, recorded, actual, diff: actual - recorded };
+        }
+
+        function cekDaysAgo(d) { return Math.floor((Date.now() - d.getTime()) / 86400000); }
+        function cekAgoText(d) {
+            if (!d) return 'belum pernah dicek';
+            const n = cekDaysAgo(d);
+            return n === 0 ? 'hari ini' : n + ' hari lalu';
+        }
+
+        async function loadCekLastMap() {
+            try {
+                const { data, error } = await sb.from('notifications').select('date,message').eq('type', 'Cek Saldo').order('date', { ascending: false }).limit(100);
+                if (error) throw error;
+                const map = {};
+                (data || []).forEach(n => {
+                    const m = /^Cek saldo \[(.+?)\]/.exec(n.message || '');
+                    if (m && !map[m[1]] && n.date) map[m[1]] = new Date(n.date);
+                });
+                cekLastMap = map;
+                return true;
+            } catch (e) { return false; }
+        }
+
+        async function renderCekSaldoReminder() {
+            const el = document.getElementById('cekSaldoReminder');
+            if (!el) return;
+            if (!appState.wallets.length) { el.classList.add('hidden'); return; }
+            const ok = await loadCekLastMap();
+            if (!ok) { el.classList.add('hidden'); return; }
+            const overdue = appState.wallets
+                .map(w => ({ name: w.name, d: cekLastMap[w.name] }))
+                .filter(x => !x.d || cekDaysAgo(x.d) >= 7);
+            el.classList.remove('hidden');
+            if (!overdue.length) {
+                el.className = 'cursor-pointer text-[11px] font-semibold rounded-xl px-3 py-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
+                el.textContent = 'Semua saldo sudah dicek dalam 7 hari terakhir.';
+                return;
+            }
+            el.className = 'cursor-pointer text-[11px] font-semibold rounded-xl px-3 py-2 bg-amber-50 text-amber-800 border border-amber-200';
+            el.textContent = 'Perlu cek saldo: ' + overdue.slice(0, 3).map(x => `${x.name} (${x.d ? cekDaysAgo(x.d) + ' hari' : 'belum pernah'})`).join(', ')
+                + (overdue.length > 3 ? ` dan ${overdue.length - 3} lainnya` : '');
+        }
+
+        function updateCekLastInfo() {
+            const el = document.getElementById('cekLastInfo');
+            const w = cekSelectedWallet();
+            if (!el || !w) return;
+            el.textContent = 'Terakhir dicek: ' + cekAgoText(cekLastMap[w.name]);
+        }
+
+        function openCekSaldoModal(walletId) {
+            if (!appState.wallets.length) { showToast('Belum ada dompet. Tambahkan dompet dulu.', 'error'); return; }
+            const sel = document.getElementById('cekWalletSelect');
+            sel.innerHTML = appState.wallets.map(w => `<option value="${cekEsc(w.id)}">${cekEsc(w.name)}</option>`).join('');
+            if (walletId) sel.value = walletId;
+            document.getElementById('cekActualInput').value = '';
+            cekRows = []; cekKind = null; cekRemCat = ''; cekRemNote = 'Belum tercatat';
+            renderCekResult();
+            updateCekLastInfo();
+            openModal('cekSaldoModal');
+            loadCekLastMap().then(updateCekLastInfo);
+        }
+
+        function onCekWalletChange() {
+            cekRows = []; cekKind = null; cekRemCat = ''; cekRemNote = 'Belum tercatat';
+            renderCekResult();
+            updateCekLastInfo();
+        }
+
+        function renderCekResult() {
+            const box = document.getElementById('cekResult');
+            const btnText = document.getElementById('btnSubmitCekText');
+            const n = cekNumbers();
+            if (!n) {
+                box.classList.add('hidden');
+                if (btnText) btnText.textContent = 'Simpan hasil cek';
+                return;
+            }
+            box.classList.remove('hidden');
+            document.getElementById('cekRecordedText').textContent = formatRupiah(n.recorded);
+            document.getElementById('cekActualText').textContent = formatRupiah(n.actual);
+
+            const diffBox = document.getElementById('cekDiffBox');
+            const diffText = document.getElementById('cekDiffText');
+            const matchMsg = document.getElementById('cekMatchMsg');
+            const splitBox = document.getElementById('cekSplitBox');
+
+            if (n.diff === 0) {
+                cekKind = null; cekRows = [];
+                diffBox.className = 'p-2.5 border rounded-xl bg-emerald-50 border-emerald-200 text-emerald-700';
+                diffText.textContent = 'Rp 0';
+                matchMsg.classList.remove('hidden');
+                splitBox.classList.add('hidden');
+                if (btnText) btnText.textContent = 'Simpan hasil cek';
+                return;
+            }
+
+            const kind = n.diff < 0 ? 'EXPENSE' : 'INCOME';
+            if (kind !== cekKind) { cekKind = kind; cekRows = []; cekRemCat = ''; }
+            diffBox.className = 'p-2.5 border rounded-xl ' + (kind === 'EXPENSE' ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-emerald-50 border-emerald-200 text-emerald-700');
+            diffText.textContent = (n.diff < 0 ? '-' : '+') + formatRupiah(Math.abs(n.diff));
+            matchMsg.classList.add('hidden');
+            splitBox.classList.remove('hidden');
+            document.getElementById('cekSplitTitle').textContent = kind === 'EXPENSE'
+                ? `Saldo asli lebih kecil ${formatRupiah(Math.abs(n.diff))}: ada pengeluaran yang belum tercatat`
+                : `Saldo asli lebih besar ${formatRupiah(Math.abs(n.diff))}: ada pemasukan yang belum tercatat`;
+            if (btnText) btnText.textContent = 'Catat & sesuaikan saldo';
+            renderCekRows();
+        }
+
+        function renderCekRows() {
+            if (!cekKind) return;
+            document.getElementById('cekRows').innerHTML = cekRows.map((r, i) => `
+                <div class="p-2.5 bg-slate-50 border border-slate-200 rounded-xl space-y-1.5">
+                    <div class="flex gap-2 items-center">
+                        <input type="text" inputmode="numeric" value="${cekEsc(r.amount)}" placeholder="Nominal" oninput="formatCurrencyInput(this); cekRows[${i}].amount = this.value; updateCekRemainder()" class="w-2/5 text-xs border border-slate-200 rounded-xl p-2 outline-none font-bold bg-white">
+                        <select onchange="cekRows[${i}].categoryId = this.value" class="flex-1 min-w-0 text-xs border border-slate-200 rounded-xl p-2 outline-none bg-white">${cekCategoryOptions(cekKind, r.categoryId)}</select>
+                        <button type="button" onclick="removeCekRow(${i})" class="p-1.5 text-slate-400 hover:text-rose-500" title="Hapus rincian"><i data-lucide="x" class="w-4 h-4"></i></button>
+                    </div>
+                    <input type="text" value="${cekEsc(r.note)}" placeholder="Catatan, mis. QRIS warung" oninput="cekRows[${i}].note = this.value" class="w-full text-xs border border-slate-200 rounded-xl p-2 outline-none bg-white">
+                </div>`).join('');
+
+            if (!cekRemCat) cekRemCat = cekDefaultCategory(cekKind);
+            document.getElementById('cekRemCat').innerHTML = cekCategoryOptions(cekKind, cekRemCat);
+            document.getElementById('cekRemNote').value = cekRemNote;
+            updateCekRemainder();
+            lucide.createIcons();
+        }
+
+        function addCekRow() {
+            if (!cekKind) return;
+            cekRows.push({ amount: '', categoryId: cekDefaultCategory(cekKind), note: '' });
+            renderCekRows();
+        }
+        function removeCekRow(i) { cekRows.splice(i, 1); renderCekRows(); }
+
+        function updateCekRemainder() {
+            const n = cekNumbers();
+            if (!n || n.diff === 0) return;
+            const total = Math.abs(n.diff);
+            const sum = cekRows.reduce((a, r) => a + parseNumericInput(r.amount), 0);
+            const rem = total - sum;
+            const remBox = document.getElementById('cekRemainderBox');
+            const overMsg = document.getElementById('cekOverMsg');
+            const btn = document.getElementById('btnSubmitCek');
+            if (rem < 0) {
+                remBox.classList.add('hidden');
+                overMsg.classList.remove('hidden');
+                overMsg.textContent = `Rincian melebihi selisih ${formatRupiah(Math.abs(rem))}. Kurangi nominalnya.`;
+                btn.disabled = true; btn.classList.add('opacity-60');
+            } else {
+                overMsg.classList.add('hidden');
+                btn.disabled = false; btn.classList.remove('opacity-60');
+                if (rem === 0) {
+                    remBox.classList.add('hidden');
+                } else {
+                    remBox.classList.remove('hidden');
+                    document.getElementById('cekRemainderText').textContent = `Sisa ${formatRupiah(rem)} dicatat sebagai koreksi:`;
+                }
+            }
+        }
+
+        async function handleSaveCek() {
+            const n = cekNumbers();
+            if (!n) { showToast('Isi saldo yang tampil di aplikasi bank atau e-wallet.', 'error'); return; }
+            const { w, recorded, actual, diff } = n;
+
+            const entries = [];
+            if (diff !== 0) {
+                const total = Math.abs(diff);
+                let sum = 0;
+                cekRows.forEach(r => {
+                    const a = parseNumericInput(r.amount);
+                    if (a > 0) {
+                        entries.push({ amount: a, categoryId: r.categoryId || cekDefaultCategory(cekKind), note: (r.note || '').trim() });
+                        sum += a;
+                    }
+                });
+                const rem = total - sum;
+                if (rem < 0) { showToast('Rincian melebihi selisih.', 'error'); return; }
+                if (rem > 0) entries.push({ amount: rem, categoryId: cekRemCat || cekDefaultCategory(cekKind), note: (cekRemNote || '').trim() || 'Belum tercatat' });
+                if (entries.some(e => !e.categoryId)) {
+                    showToast('Belum ada kategori ' + (cekKind === 'EXPENSE' ? 'pengeluaran' : 'pemasukan') + '. Tambahkan dulu di Pengaturan.', 'error');
+                    return;
+                }
+            }
+
+            const label = diff === 0 ? 'Simpan hasil cek' : 'Catat & sesuaikan saldo';
+            setButtonLoading('btnSubmitCek', true);
+            let saved = 0;
+            try {
+                for (const e of entries) {
+                    const { error } = await sb.from('transactions').insert({
+                        id: genArtosId('TRX'),
+                        date: cekToday(),
+                        type: cekKind,
+                        amount: e.amount,
+                        category: e.categoryId,
+                        wallet_id: w.id,
+                        wallet_id_to: null,
+                        note: ('[Koreksi] ' + e.note).trim(),
+                        receipt_url: '',
+                        subcategory: ''
+                    });
+                    if (error) throw new Error(error.message);
+                    saved++;
+                }
+                // Pastikan saldo dompet sama persis dengan saldo asli
+                const { error: balErr } = await sb.from('wallets').update({ balance: actual }).eq('wallet_id', w.id);
+                if (balErr) throw new Error(balErr.message);
+
+                const diffLabel = diff === 0 ? 'Rp 0' : (diff > 0 ? '+' : '-') + formatRupiah(Math.abs(diff));
+                await logArtosNotif(`Cek saldo [${w.name}] Artos ${formatRupiah(recorded)}, asli ${formatRupiah(actual)}, selisih ${diffLabel}`, 'Cek Saldo');
+
+                setButtonLoading('btnSubmitCek', false, label);
+                closeModal('cekSaldoModal');
+                showToast(diff === 0 ? 'Hasil cek disimpan. Saldo sudah cocok.' : `Saldo ${w.name} disesuaikan menjadi ${formatRupiah(actual)}.`);
+                artosLoadData(false);
+            } catch (err) {
+                setButtonLoading('btnSubmitCek', false, label);
+                showToast((err && err.message ? err.message : 'Gagal menyimpan.') + (saved ? ` (${saved} transaksi sudah tersimpan, cek Riwayat)` : ''), 'error');
+                if (saved) artosLoadData(false);
+            }
+        }
 
         let toastTimer = null;
         function showToast(msg, type = 'success') {
