@@ -11,13 +11,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#0f172a">
-    <style>
-        /* Critical CSS: tampil benar sejak frame pertama, sebelum Tailwind CDN selesai dimuat */
-        html, body { background: #0f172a; margin: 0; }
-        .hidden { display: none !important; }
-        #authScreen { background: linear-gradient(to bottom right, #0f172a, #1e293b, #022c22); }
-        .pin-dot.bg-emerald-500 { background: #10b981; border-color: #10b981; }
-    </style>
     
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -47,22 +40,20 @@
     </script>
 
     <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=optional" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <!-- Lucide Icons & Supabase CDN -->
-    <script defer src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Chart.js CDN -->
-    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <!-- SheetJS (XLSX Export) & jsPDF / html2canvas (PDF Export) -->
-    <script defer src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 
     <style>
         ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -97,6 +88,55 @@
 
         .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        /* ===== LOGIN DI HP: FULL LAYAR ALA APLIKASI BANK (desktop/tablet tidak berubah) ===== */
+        @media (max-width: 639px) {
+            #authScreen { padding: 0; align-items: stretch; }
+            #authScreen .auth-card {
+                background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none;
+                border: 0; box-shadow: none; border-radius: 0; max-width: none; width: 100%; margin: 0;
+                min-height: 100vh; min-height: 100dvh;
+                padding: calc(env(safe-area-inset-top, 0px) + 28px) 24px calc(env(safe-area-inset-bottom, 0px) + 22px);
+                display: flex; flex-direction: column;
+            }
+            #authScreen #authLogoBox { width: 72px; height: 72px; background: rgba(16, 185, 129, 0.16); }
+            #authScreen #authTitle { color: #ffffff; font-size: 1.6rem; }
+            #authScreen #authSubtitle { color: #94a3b8; margin-bottom: 18px; }
+            #authScreen #authTabs { background: rgba(255, 255, 255, 0.08); margin-bottom: 18px; }
+            #authScreen #authTabs button:not(.bg-white) { color: #cbd5e1; }
+
+            #authScreen #pinAuthContainer:not(.hidden) { display: flex; flex-direction: column; flex: 1; }
+            #authScreen #pinPromptText { color: #e2e8f0; font-size: 0.85rem; margin-top: 6px; }
+            #authScreen #directPinWrap, #authScreen #pinSubmitWrap { display: none; }
+            #authScreen #pinDots { margin: 14px 0 0; }
+            #authScreen .pin-dot { width: 16px; height: 16px; background: transparent; border-color: rgba(255, 255, 255, 0.55); box-shadow: none; }
+            #authScreen .pin-dot.bg-emerald-500 { background: #34d399; border-color: #34d399; }
+            #authScreen #authErrorMessage { color: #fda4af; text-align: center; margin: 12px 0 0; }
+
+            #authScreen #pinKeypad { width: 100%; max-width: 320px; margin: auto auto 0; gap: 14px 22px; }
+            #authScreen #pinKeypad button {
+                height: 68px; border-radius: 9999px; background: rgba(255, 255, 255, 0.08);
+                border: 1px solid rgba(255, 255, 255, 0.10); color: #ffffff; font-size: 1.6rem; font-weight: 500; box-shadow: none;
+            }
+            #authScreen #pinKeypad button:active { background: rgba(255, 255, 255, 0.24); transform: scale(0.94); }
+            #authScreen #pinKeypad button:nth-child(10) { background: transparent; border-color: transparent; color: #fda4af; font-size: 1.05rem; font-weight: 700; }
+            #authScreen #pinKeypad button:nth-child(12) { background: transparent; border-color: transparent; color: #e2e8f0; }
+            #authScreen #pinKeypad svg { width: 26px; height: 26px; }
+
+            #authScreen #faceAuthContainer:not(.hidden) { display: flex; flex-direction: column; flex: 1; align-items: center; justify-content: center; gap: 18px; }
+            #authScreen #faceAuthContainer > .relative { width: 240px; height: 240px; }
+            #authScreen #faceAuthStatusText { color: #e2e8f0; font-size: 0.85rem; }
+            #authScreen #faceAuthContainer > div.space-y-2 { width: 100%; max-width: 320px; }
+            #authScreen #btnVerifyFace { padding: 14px; border-radius: 9999px; font-size: 0.9rem; }
+            #authScreen #faceAuthContainer > button { color: #6ee7b7; }
+        }
+        @media (max-width: 639px) and (max-height: 700px) {
+            #authScreen #pinKeypad { gap: 10px 20px; }
+            #authScreen #pinKeypad button { height: 56px; font-size: 1.35rem; }
+            #authScreen #authSubtitle { display: none; }
+            #authScreen #authLogoBox { width: 56px; height: 56px; }
+            #authScreen .auth-card { padding-top: calc(env(safe-area-inset-top, 0px) + 16px); }
+        }
     </style>
 </head>
 <body class="h-full text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white flex flex-col">
@@ -859,7 +899,7 @@
                         </div>
 
                         <!-- SUB-TAB 2: KATEGORI BERIKON & KATA KUNCI (CRUD LENGKAP) -->
-                        <div id="setPane-categories" class="hidden bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm space-y-4 min-w-0 overflow-hidden">
+                        <div id="setPane-categories" class="hidden bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm space-y-4">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Manajemen Kategori Berikon & Kata Kunci Otomatis</h4>
@@ -882,7 +922,7 @@
                                     </div>
                                     <button type="button" onclick="openModal('addKeywordModal')" class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition">+ Tambah Kata Kunci</button>
                                 </div>
-                                <div id="smartRulesListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 min-w-0"></div>
+                                <div id="smartRulesListContainer" class="flex flex-wrap gap-1.5"></div>
                             </div>
                         </div>
 
@@ -1167,15 +1207,12 @@
 
                 <!-- Catatan + status kategori otomatis (tinggi tetap, tidak melompat) -->
                 <div>
-                    <div class="relative">
-                        <i data-lucide="pencil-line" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                        <input type="text" id="txNote" autocomplete="off" placeholder="Tulis catatan..." class="w-full text-sm border border-slate-200 rounded-xl pl-9 pr-3 py-2.5 focus:ring-2 focus:ring-teal-500 outline-none font-medium">
-                    </div>
+                    <input type="text" id="txNote" autocomplete="off" placeholder="Catatan, misal: KRL Tenjo / Bensin / Makan ayam" class="w-full text-sm border border-slate-200 rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-teal-500 outline-none font-medium">
 
-                    <div id="smartCategoryPanel" class="h-5 mt-0.5 px-1 flex items-center justify-between gap-2">
+                    <div id="smartCategoryPanel" class="h-7 mt-1 px-1 flex items-center justify-between gap-2">
                         <div id="smartStatusView" class="flex items-center gap-1.5 min-w-0 flex-1 text-[11px] font-semibold text-slate-400">
-                            <span id="smartDetectedEmoji" class="text-sm leading-none"></span>
-                            <span id="smartCategoryMessage" class="truncate"></span>
+                            <span id="smartDetectedEmoji" class="text-sm leading-none">✨</span>
+                            <span id="smartCategoryMessage" class="truncate">Ketik catatan, kategori dipilih otomatis</span>
                         </div>
                         <button type="button" id="btnKeywordToggle" onclick="toggleKeywordEditor(true)" class="hidden shrink-0 text-[10px] font-bold text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full">+ Kata kunci</button>
                         <div id="customKeywordSaveBox" class="hidden flex flex-1 items-center gap-1">
@@ -1189,7 +1226,7 @@
                 <!-- Kategori: 2 baris, geser ke samping (tinggi tetap) -->
                 <div id="categorySelectionGrid">
                     <select id="txCategorySelect" onchange="updateSubcategoryOptions(); syncCategoryIconGrid();" class="hidden"></select>
-                    <div id="txCategoryIconGrid" class="relative grid grid-cols-4 gap-1.5 max-h-[148px] overflow-y-auto overflow-x-hidden no-scrollbar"></div>
+                    <div id="txCategoryIconGrid" class="relative grid grid-rows-2 grid-flow-col auto-cols-[68px] gap-1.5 overflow-x-auto no-scrollbar"></div>
                 </div>
 
                 <!-- Dompet (+ Subkategori / Akun tujuan) -->
@@ -2183,7 +2220,11 @@
             if (noteEl) noteEl.addEventListener('input', scheduleSmartCategoryAnalysis);
             const typeEl = document.getElementById('txType');
             if (typeEl) typeEl.addEventListener('change', scheduleSmartCategoryAnalysis);
-                    });
+            const catStrip = document.getElementById('txCategoryIconGrid');
+            if (catStrip) catStrip.addEventListener('wheel', e => {
+                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { catStrip.scrollLeft += e.deltaY; e.preventDefault(); }
+            }, { passive: false });
+        });
 
         /* ====================================================================
            1. KOMUNIKASI BACKEND & UPLOAD GAMBAR KE SUPABASE STORAGE
@@ -2656,25 +2697,18 @@
             return { ok: true };
         }
 
-        let loadingShowTimer = null;
         function showLoading(title = 'Memproses Data...', subtitle = 'Menghubungkan ke Supabase Cloud') {
             document.getElementById('loadingTitle').textContent = title;
             document.getElementById('loadingSubtitle').textContent = subtitle;
-            const ov = document.getElementById('globalLoadingOverlay');
-            if (!ov.classList.contains('hidden') || loadingShowTimer) return;   // sudah tampil / sudah dijadwalkan
-            loadingShowTimer = setTimeout(() => { loadingShowTimer = null; ov.classList.remove('hidden'); }, 250);
+            document.getElementById('globalLoadingOverlay').classList.remove('hidden');
         }
-        function hideLoading() {
-            if (loadingShowTimer) { clearTimeout(loadingShowTimer); loadingShowTimer = null; }
-            document.getElementById('globalLoadingOverlay').classList.add('hidden');
-        }
+        function hideLoading() { document.getElementById('globalLoadingOverlay').classList.add('hidden'); }
 
-        function artosLoadData(silent = false, opts = {}) {
-            const quiet = !!opts.quiet, keepLoading = !!opts.keepLoading;
-            if (!silent && !quiet) showLoading('Memuat Data...', 'Mengambil data dari Supabase');
+        function artosLoadData(silent = false) {
+            if (!silent) showLoading('Memuat Data...', 'Mengambil data dari Supabase');
             return artosCall('getArtosAppData')
                 .then(data => {
-                    if (!keepLoading) hideLoading();
+                    hideLoading();
                     if (!data || !data.ok) throw new Error('Gagal membaca data.');
                     appState.wallets = data.wallets || [];
                     appState.categories = data.categories || [];
@@ -2693,12 +2727,12 @@
                         try { localStorage.setItem('artos_profile_name', data.userName); } catch(e) {}
                     }
                     renderAllViews();
-                    if (silent && !quiet) showToast('Data berhasil diperbarui.');
+                    if (silent) showToast('Data berhasil diperbarui.');
                     return data;
                 })
                 .catch(err => {
                     hideLoading();
-                    if (!quiet) showToast(err.message || 'Gagal memuat database.', 'error');
+                    showToast(err.message || 'Gagal memuat database.', 'error');
                     throw err;
                 });
         }
@@ -2787,8 +2821,8 @@
 
             artosGasRun()
                 .withSuccessHandler(result => {
+                    hideLoading();
                     if (!result || !result.ok) {
-                        hideLoading();
                         const msg = (result && result.message) || 'PIN salah.';
                         errEl.textContent = msg;
                         errEl.classList.remove('hidden');
@@ -2828,16 +2862,13 @@
                 initUserProfile();
             }
 
-            showLoading('Memuat Data...', 'Mengambil data dari Supabase');
-            artosLoadData(false, { keepLoading: true })
+            artosLoadData(false)
                 .then(() => {
                     stopAuthWebcam();
                     unlockApp();
-                    hideLoading();
                     showToast('Login berhasil. Selamat datang, ' + userName + '!');
                 })
                 .catch(err => {
-                    hideLoading();
                     artosSessionToken = '';
                     showToast('Gagal membaca database: ' + err.message, 'error');
                     clearPin();
@@ -2992,11 +3023,7 @@
         function unlockApp() {
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('topStatusBar').classList.remove('hidden');
-            const mainLayout = document.getElementById('mainAppLayout');
-            mainLayout.classList.remove('hidden');
-            mainLayout.classList.remove('animate-fadeInUp');
-            void mainLayout.offsetWidth;
-            mainLayout.classList.add('animate-fadeInUp');
+            document.getElementById('mainAppLayout').classList.remove('hidden');
             clearPin();
             renderAllViews();
         }
@@ -3107,10 +3134,10 @@
                 const imgEl = document.getElementById(target.img);
                 const initEl = document.getElementById(target.initial);
                 if (savedAvatar && savedAvatar.length > 10) {
-                    if (imgEl) { if (imgEl.getAttribute('src') !== savedAvatar) imgEl.src = savedAvatar; imgEl.classList.remove('hidden'); }
+                    if (imgEl) { imgEl.src = savedAvatar; imgEl.classList.remove('hidden'); }
                     if (initEl) initEl.classList.add('hidden');
                 } else {
-                    if (imgEl) { if (imgEl.getAttribute('src')) imgEl.removeAttribute('src'); imgEl.classList.add('hidden'); }
+                    if (imgEl) { imgEl.src = ''; imgEl.classList.add('hidden'); }
                     if (initEl) { initEl.textContent = initials; initEl.classList.remove('hidden'); }
                 }
             });
@@ -3234,7 +3261,7 @@
             renderBillCalendar();
             renderDebtsTable();
             renderSettingsCrudViews();
-            if (!document.getElementById('mainAppLayout').classList.contains('hidden')) renderDashboardCharts();
+            renderDashboardCharts();
             renderNotificationsLog();
             lucide.createIcons();
         }
@@ -3455,8 +3482,8 @@
             try {
                 artosRealtimeChannel = sb
                     .channel('artos-abdi-live')
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => artosLoadData(false, { quiet: true }).catch(() => {}))
-                    .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, () => artosLoadData(false, { quiet: true }).catch(() => {}))
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions' }, () => artosLoadData(false))
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'wallets' }, () => artosLoadData(false))
                     .subscribe();
             } catch (e) {}
         }
@@ -4441,20 +4468,13 @@ function closeAllGoalOverlays() {
             container.innerHTML = appState.smartRules.map(r => {
                 const cat = appState.categories.find(c => c.id === r.categoryId);
                 const iconObj = cat ? inferCategoryIcon(cat) : { emoji: '🏷️' };
-                const kws = String(r.keywords || '').split(',').map(k => k.trim()).filter(Boolean);
                 return `
-                    <div class="min-w-0 bg-emerald-50/70 border border-emerald-200 rounded-2xl p-3 space-y-2">
-                        <div class="flex items-center justify-between gap-2">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <span class="w-7 h-7 rounded-lg bg-white border border-emerald-200 flex items-center justify-center text-sm shrink-0">${iconObj.emoji}</span>
-                                <span class="text-xs font-bold text-emerald-800 truncate">${cat ? cat.name : r.categoryId}</span>
-                            </div>
-                            <button type="button" onclick="deleteSmartRule('${r.id}')" class="shrink-0 w-6 h-6 rounded-full bg-white border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-700 text-sm font-bold leading-none flex items-center justify-center" title="Hapus kata kunci">×</button>
-                        </div>
-                        <div class="flex flex-wrap gap-1">
-                            ${kws.map(k => `<span class="max-w-full break-words text-[10px] bg-white border border-emerald-200 text-slate-700 px-2 py-0.5 rounded-full font-medium">${k}</span>`).join('')}
-                        </div>
-                    </div>
+                    <span class="inline-flex items-center gap-1.5 text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 px-2.5 py-1 rounded-full font-medium">
+                        <span>${iconObj.emoji}</span>
+                        <b>${r.keywords}</b>
+                        <span class="text-emerald-600">→ ${cat ? cat.name : r.categoryId}</span>
+                        <button type="button" onclick="deleteSmartRule('${r.id}')" class="text-rose-500 hover:text-rose-700 ml-0.5 font-bold" title="Hapus kata kunci">×</button>
+                    </span>
                 `;
             }).join('');
         }
@@ -4723,7 +4743,7 @@ function closeAllGoalOverlays() {
             const grid = document.getElementById('txCategoryIconGrid');
             const sel = document.getElementById('txCategorySelect');
             if (!grid || !sel) return;
-            const prevScroll = grid.scrollTop;
+            const prevScroll = grid.scrollLeft;
             const currentVal = sel.value;
             const txType = document.getElementById('txType').value;
             const cats = appState.categories.filter(c => c.type === txType && c.active !== false);
@@ -4732,20 +4752,25 @@ function closeAllGoalOverlays() {
                 const selected = c.id === currentVal;
                 const iconObj = inferCategoryIcon(c);
                 return `
-                    <button type="button" data-cat="${c.id}" title="${c.name}" onclick="pickTxCategoryTile('${c.id}')" class="min-w-0 flex flex-col items-center justify-center px-1 h-[46px] rounded-xl border text-center transition active:scale-95 ${
+                    <button type="button" data-cat="${c.id}" title="${c.name}" onclick="pickTxCategoryTile('${c.id}')" class="flex flex-col items-center justify-center px-1 h-[46px] rounded-xl border text-center transition active:scale-95 ${
                         selected ? 'bg-teal-50 border-teal-500 text-teal-800 ring-2 ring-teal-500/20 font-bold' : 'bg-white border-slate-200/90 text-slate-600 hover:bg-slate-50'
                     }">
                         <span class="text-base leading-none">${iconObj.emoji}</span>
                         <span class="text-[9px] leading-tight mt-0.5 w-full truncate">${c.name}</span>
                     </button>
                 `;
-            }).join('');
+            }).join('') + `
+                <button type="button" title="Kelola kategori" onclick="closeModal('addTransactionModal'); openSettingsTab('categories');" class="flex flex-col items-center justify-center px-1 h-[46px] rounded-xl border border-dashed border-slate-300 text-slate-400 hover:text-teal-600 hover:border-teal-400 transition">
+                    <span class="text-base leading-none">⚙️</span>
+                    <span class="text-[9px] leading-tight mt-0.5">Atur</span>
+                </button>
+            `;
 
             const selBtn = center ? grid.querySelector(`[data-cat="${currentVal}"]`) : null;
             if (selBtn) {
-                grid.scrollTop = Math.max(0, selBtn.offsetTop - (grid.clientHeight - selBtn.offsetHeight) / 2);
+                grid.scrollLeft = Math.max(0, selBtn.offsetLeft - (grid.clientWidth - selBtn.offsetWidth) / 2);
             } else {
-                grid.scrollTop = prevScroll;
+                grid.scrollLeft = prevScroll;
             }
         }
 
@@ -4828,7 +4853,7 @@ function closeAllGoalOverlays() {
             const box = document.getElementById('customKeywordSaveBox');
             if (!view || !emojiEl || !msgEl) return;
 
-            let emoji = '', text = '', color = 'text-slate-400', showBtn = false;
+            let emoji = '✨', text = 'Ketik catatan, kategori dipilih otomatis', color = 'text-slate-400', showBtn = false;
             if ((state === 'found' || state === 'manual') && cat) {
                 const subText = sub || (state === 'manual' ? (document.getElementById('txSubcategorySelect')?.value || '') : '');
                 emoji = inferCategoryIcon(cat).emoji;
