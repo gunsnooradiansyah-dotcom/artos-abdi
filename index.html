@@ -899,7 +899,7 @@
                         </div>
 
                         <!-- SUB-TAB 2: KATEGORI BERIKON & KATA KUNCI (CRUD LENGKAP) -->
-                        <div id="setPane-categories" class="hidden bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm space-y-4">
+                        <div id="setPane-categories" class="hidden bg-white border border-slate-200/80 p-5 rounded-2xl shadow-sm space-y-4 min-w-0 overflow-hidden">
                             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                                 <div>
                                     <h4 class="font-bold text-slate-800 text-sm">Manajemen Kategori Berikon & Kata Kunci Otomatis</h4>
@@ -922,7 +922,7 @@
                                     </div>
                                     <button type="button" onclick="openModal('addKeywordModal')" class="text-[11px] bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold px-3 py-1.5 rounded-xl hover:bg-emerald-100 transition">+ Tambah Kata Kunci</button>
                                 </div>
-                                <div id="smartRulesListContainer" class="flex flex-wrap gap-1.5"></div>
+                                <div id="smartRulesListContainer" class="grid grid-cols-1 md:grid-cols-2 gap-2.5 min-w-0"></div>
                             </div>
                         </div>
 
@@ -4468,13 +4468,20 @@ function closeAllGoalOverlays() {
             container.innerHTML = appState.smartRules.map(r => {
                 const cat = appState.categories.find(c => c.id === r.categoryId);
                 const iconObj = cat ? inferCategoryIcon(cat) : { emoji: '🏷️' };
+                const kws = String(r.keywords || '').split(',').map(k => k.trim()).filter(Boolean);
                 return `
-                    <span class="inline-flex items-center gap-1.5 text-[11px] bg-emerald-50 border border-emerald-200 text-emerald-800 px-2.5 py-1 rounded-full font-medium">
-                        <span>${iconObj.emoji}</span>
-                        <b>${r.keywords}</b>
-                        <span class="text-emerald-600">→ ${cat ? cat.name : r.categoryId}</span>
-                        <button type="button" onclick="deleteSmartRule('${r.id}')" class="text-rose-500 hover:text-rose-700 ml-0.5 font-bold" title="Hapus kata kunci">×</button>
-                    </span>
+                    <div class="min-w-0 bg-emerald-50/70 border border-emerald-200 rounded-2xl p-3 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <span class="w-7 h-7 rounded-lg bg-white border border-emerald-200 flex items-center justify-center text-sm shrink-0">${iconObj.emoji}</span>
+                                <span class="text-xs font-bold text-emerald-800 truncate">${cat ? cat.name : r.categoryId}</span>
+                            </div>
+                            <button type="button" onclick="deleteSmartRule('${r.id}')" class="shrink-0 w-6 h-6 rounded-full bg-white border border-rose-200 text-rose-500 hover:bg-rose-50 hover:text-rose-700 text-sm font-bold leading-none flex items-center justify-center" title="Hapus kata kunci">×</button>
+                        </div>
+                        <div class="flex flex-wrap gap-1">
+                            ${kws.map(k => `<span class="max-w-full break-words text-[10px] bg-white border border-emerald-200 text-slate-700 px-2 py-0.5 rounded-full font-medium">${k}</span>`).join('')}
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
