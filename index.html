@@ -1226,7 +1226,7 @@
                 <!-- Kategori: 2 baris, geser ke samping (tinggi tetap) -->
                 <div id="categorySelectionGrid">
                     <select id="txCategorySelect" onchange="updateSubcategoryOptions(); syncCategoryIconGrid();" class="hidden"></select>
-                    <div id="txCategoryIconGrid" class="relative grid grid-rows-2 grid-flow-col auto-cols-[68px] gap-1.5 overflow-x-auto no-scrollbar"></div>
+                    <div id="txCategoryIconGrid" class="relative grid grid-cols-4 gap-1.5 max-h-[148px] overflow-y-auto overflow-x-hidden no-scrollbar"></div>
                 </div>
 
                 <!-- Dompet (+ Subkategori / Akun tujuan) -->
@@ -2220,11 +2220,7 @@
             if (noteEl) noteEl.addEventListener('input', scheduleSmartCategoryAnalysis);
             const typeEl = document.getElementById('txType');
             if (typeEl) typeEl.addEventListener('change', scheduleSmartCategoryAnalysis);
-            const catStrip = document.getElementById('txCategoryIconGrid');
-            if (catStrip) catStrip.addEventListener('wheel', e => {
-                if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { catStrip.scrollLeft += e.deltaY; e.preventDefault(); }
-            }, { passive: false });
-        });
+                    });
 
         /* ====================================================================
            1. KOMUNIKASI BACKEND & UPLOAD GAMBAR KE SUPABASE STORAGE
@@ -4750,7 +4746,7 @@ function closeAllGoalOverlays() {
             const grid = document.getElementById('txCategoryIconGrid');
             const sel = document.getElementById('txCategorySelect');
             if (!grid || !sel) return;
-            const prevScroll = grid.scrollLeft;
+            const prevScroll = grid.scrollTop;
             const currentVal = sel.value;
             const txType = document.getElementById('txType').value;
             const cats = appState.categories.filter(c => c.type === txType && c.active !== false);
@@ -4759,25 +4755,20 @@ function closeAllGoalOverlays() {
                 const selected = c.id === currentVal;
                 const iconObj = inferCategoryIcon(c);
                 return `
-                    <button type="button" data-cat="${c.id}" title="${c.name}" onclick="pickTxCategoryTile('${c.id}')" class="flex flex-col items-center justify-center px-1 h-[46px] rounded-xl border text-center transition active:scale-95 ${
+                    <button type="button" data-cat="${c.id}" title="${c.name}" onclick="pickTxCategoryTile('${c.id}')" class="min-w-0 flex flex-col items-center justify-center px-1 h-[46px] rounded-xl border text-center transition active:scale-95 ${
                         selected ? 'bg-teal-50 border-teal-500 text-teal-800 ring-2 ring-teal-500/20 font-bold' : 'bg-white border-slate-200/90 text-slate-600 hover:bg-slate-50'
                     }">
                         <span class="text-base leading-none">${iconObj.emoji}</span>
                         <span class="text-[9px] leading-tight mt-0.5 w-full truncate">${c.name}</span>
                     </button>
                 `;
-            }).join('') + `
-                <button type="button" title="Kelola kategori" onclick="closeModal('addTransactionModal'); openSettingsTab('categories');" class="flex flex-col items-center justify-center px-1 h-[46px] rounded-xl border border-dashed border-slate-300 text-slate-400 hover:text-teal-600 hover:border-teal-400 transition">
-                    <span class="text-base leading-none">⚙️</span>
-                    <span class="text-[9px] leading-tight mt-0.5">Atur</span>
-                </button>
-            `;
+            }).join('');
 
             const selBtn = center ? grid.querySelector(`[data-cat="${currentVal}"]`) : null;
             if (selBtn) {
-                grid.scrollLeft = Math.max(0, selBtn.offsetLeft - (grid.clientWidth - selBtn.offsetWidth) / 2);
+                grid.scrollTop = Math.max(0, selBtn.offsetTop - (grid.clientHeight - selBtn.offsetHeight) / 2);
             } else {
-                grid.scrollLeft = prevScroll;
+                grid.scrollTop = prevScroll;
             }
         }
 
